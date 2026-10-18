@@ -10,7 +10,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Chakra+Petch:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Concept : l'application Black Box. Une barre d'onglets en bas (QG, Trading, Wallet, Plus) ; le QG est la salle isométrique pixel art où travaillent les 20 agents. Un seul thème sombre, assumé. */
+/* Concept : l'application Black Box. Barre d'onglets en bas (Salle, Graphiques, Diagnostics, Wallet, Plus), bouton CARO flottant pour parler à l'app. La Salle est la pièce isométrique pixel art des 20 agents. Thème sombre, couleur d'accent réglable. */
 :root {
   --bg: #06080d;
   --panel: #0c111c;
@@ -41,25 +41,26 @@ body {
   line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 14px calc(96px + env(safe-area-inset-bottom, 0px));
+  padding-block: 14px calc(150px + env(safe-area-inset-bottom, 0px));
 }
 .wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-.narrow { max-width: 640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
-button, input, textarea { font: inherit; color: inherit; }
+.narrow { max-width: 680px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 a { color: var(--glow); }
+code { font-family: var(--mono); font-size: .92em; }
 .up { color: var(--gain); } .dn { color: var(--loss); } .wm { color: var(--cash); }
 
-/* ---------- En-tête ---------- */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .brand { display: flex; flex-direction: column; gap: 2px; }
 .tag { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--glow); }
 .tag::before { content: "● "; }
-h1 { font-family: var(--pixel); font-weight: 700; font-size: clamp(26px, 6vw, 40px); line-height: 1; margin: 0; color: var(--glow); text-shadow: 0 0 18px rgba(216,243,106,.3); }
+h1 { font-family: var(--pixel); font-weight: 700; font-size: clamp(26px, 6vw, 40px); line-height: 1; margin: 0; color: var(--glow); text-shadow: 0 0 18px color-mix(in srgb, var(--glow) 35%, transparent); }
 .kill-pill { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; border: 1px solid var(--line); padding: 5px 9px; color: var(--day); }
 .kill-pill.on { color: var(--guard); border-color: var(--guard); }
-h2 { font-family: var(--pixel); font-weight: 400; font-size: 15px; margin: 0; color: var(--fg); letter-spacing: .02em; }
+h2 { font-family: var(--pixel); font-weight: 400; font-size: 15px; margin: 0; letter-spacing: .02em; }
+.pagetitle { font-family: var(--pixel); font-size: 20px; color: var(--glow); }
 .sub { margin: 0; color: var(--muted); font-size: 14px; }
 .sec { display: flex; flex-direction: column; gap: 10px; }
 .card { background: var(--panel); border: 1px solid var(--line); padding: 14px; }
@@ -71,22 +72,41 @@ h2 { font-family: var(--pixel); font-weight: 400; font-size: 15px; margin: 0; co
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip { background: transparent; border: 1px solid var(--line); padding: 5px 11px; font-size: 13px; color: var(--muted); }
 .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-
-/* ---------- Onglets ---------- */
 .view[hidden] { display: none !important; }
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(12,17,28,.94); border-top: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+
+/* ---------- Navigation ---------- */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: color-mix(in srgb, var(--panel) 94%, transparent); border-top: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)); }
-nav.tabs .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
-nav.tabs button { background: none; border: 0; color: var(--muted); padding: 9px 2px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--pixel); font-size: 10.5px; letter-spacing: .04em; }
+nav.tabs .in { max-width: 600px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+nav.tabs button { background: none; border: 0; color: var(--muted); padding: 9px 2px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--pixel); font-size: 9.5px; letter-spacing: .02em; min-width: 0; }
 nav.tabs svg { width: 22px; height: 22px; }
 nav.tabs button[aria-selected="true"] { color: var(--glow); box-shadow: inset 0 2px 0 var(--glow); }
 
-/* ---------- QG ---------- */
+/* ---------- Agent vocal CARO ---------- */
+.carofab { position: fixed; z-index: 25; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--glow); background: var(--bg); color: var(--glow); display: grid; place-items: center; box-shadow: 0 0 22px color-mix(in srgb, var(--glow) 40%, transparent); }
+.carofab svg { width: 28px; height: 28px; }
+.carofab b { position: absolute; bottom: -16px; font-family: var(--pixel); font-size: 9px; font-weight: 400; }
+@media (prefers-reduced-motion: no-preference) { .carofab.busy { animation: fabpulse 1s ease-in-out infinite; } }
+@keyframes fabpulse { 50% { box-shadow: 0 0 34px var(--glow); } }
+.sheet { position: fixed; z-index: 26; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(70px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin-left: auto; background: var(--panel); border: 1px solid var(--glow); box-shadow: 0 0 40px rgba(0,0,0,.6); display: flex; flex-direction: column; max-height: min(70vh, 560px); }
+.sheet[hidden] { display: none; }
+.sheet .hd { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); gap: 8px; }
+.sheet .hd b { font-family: var(--pixel); font-weight: 400; color: var(--glow); }
+.sheet .hd span { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.convo { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+.msg { max-width: 88%; padding: 8px 11px; font-size: 14.5px; border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.me { align-self: flex-end; background: var(--panel2); }
+.msg.caro { align-self: flex-start; border-color: var(--glow); background: var(--bg); }
+.msg.act { align-self: flex-start; font-family: var(--mono); font-size: 11.5px; color: var(--muted); border-style: dashed; }
+.vform { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.vform input { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--line); padding: 10px 11px; font-size: 16px; }
+.vhint { padding: 0 12px 10px; font-size: 12px; color: var(--muted); }
+.sugg { display: flex; gap: 6px; overflow-x: auto; padding: 0 12px 8px; }
+.sugg button { flex: none; background: none; border: 1px solid var(--line); padding: 4px 9px; font-size: 12.5px; color: var(--muted); }
+
+/* ---------- Salle ---------- */
 .cmdbar { display: flex; flex-direction: column; gap: 10px; }
-.say { display: flex; gap: 8px; }
-.say input { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); padding: 11px 12px; font-family: var(--mono); font-size: 14px; }
-.say input::placeholder { color: var(--muted); }
-.missions { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.missions { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
 .mbtn { flex: none; background: var(--panel2); border: 1px solid var(--line); padding: 6px 10px; font-size: 13.5px; }
 .mbtn[aria-current="true"] { border-color: var(--glow); color: var(--glow); }
 .auto { flex: none; display: flex; align-items: center; gap: 7px; background: none; border: 1px solid var(--line); padding: 6px 10px; font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; }
@@ -105,12 +125,11 @@ nav.tabs button[aria-selected="true"] { color: var(--glow); box-shadow: inset 0 
 .bar { height: 3px; background: var(--line); margin-top: 4px; }
 .bar i { display: block; height: 100%; width: 0; background: var(--glow); transition: width .4s; }
 .clock { color: var(--muted); font-variant-numeric: tabular-nums; }
-.ask { position: absolute; left: 8px; right: 8px; bottom: 8px; max-width: 420px; margin-inline: auto; background: rgba(6,8,13,.94); border: 1px solid var(--glow); box-shadow: 0 0 24px rgba(216,243,106,.2); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
-.ask[hidden] { display: none; }
+.ask { position: absolute; left: 8px; right: 8px; bottom: 8px; max-width: 420px; margin-inline: auto; background: rgba(6,8,13,.94); border: 1px solid var(--glow); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.ask[hidden], .ask .acts[hidden] { display: none; }
 .ask b { font-family: var(--pixel); font-size: 12px; color: var(--glow); font-weight: 400; }
 .ask p { margin: 0; font-size: 14.5px; }
 .ask .acts { display: flex; gap: 6px; }
-.ask .acts[hidden] { display: none; }
 .ask .acts button { background: var(--panel2); border: 1px solid var(--line); padding: 5px 12px; font-size: 13px; }
 .ask .acts button.yes { background: var(--glow); color: var(--bg); border-color: var(--glow); }
 .hint { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 6px 10px; border-top: 1px solid var(--line); }
@@ -134,13 +153,13 @@ aside { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 #log { list-style: none; margin: 0; padding: 4px 0; overflow-y: auto; max-height: 280px; font-family: var(--mono); font-size: 12px; }
 @media (min-width: 980px) { #log { max-height: 330px; } }
 #log li { padding: 5px 12px; border-bottom: 1px solid rgba(28,39,64,.5); }
-#log li.mission { color: var(--glow); font-family: var(--pixel); font-size: 11px; background: rgba(216,243,106,.05); }
+#log li.mission { color: var(--glow); font-family: var(--pixel); font-size: 11px; }
 #log li.done { color: var(--day); }
 #log li.alert .msg { color: var(--guard); }
 #log time { color: var(--muted); margin-right: 6px; font-variant-numeric: tabular-nums; }
 #log .msg { display: block; color: var(--fg); font-family: var(--display); font-size: 13.5px; }
 #log li.new { animation: flash .9s ease-out; }
-@keyframes flash { from { background: rgba(216,243,106,.14); } to { background: transparent; } }
+@keyframes flash { from { background: color-mix(in srgb, var(--glow) 14%, transparent); } to { background: transparent; } }
 .group-h { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--c); margin: 6px 0 0; }
 .team { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 8px; }
 .achip { display: grid; grid-template-columns: 10px minmax(0,1fr) auto; align-items: center; gap: 8px; text-align: left; background: var(--panel); border: 1px solid var(--line); padding: 8px 10px; }
@@ -153,8 +172,47 @@ aside { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .pill.talk { border-color: var(--c); color: var(--c); animation: pulse 1s steps(2, start) infinite; }
 @keyframes pulse { to { opacity: .45; } }
 .c-cmd { --c: var(--cmd); } .c-day { --c: var(--day); } .c-make { --c: var(--make); } .c-cash { --c: var(--cash); } .c-guard { --c: var(--guard); } .c-user { --c: var(--user); }
+.garage { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 8px; }
+.bot { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; display: grid; grid-template-columns: 52px minmax(0,1fr) auto; gap: 10px; align-items: center; }
+.bot svg { width: 52px; height: 58px; }
+.bot .n { font-family: var(--pixel); font-size: 13px; }
+.bot .d { color: var(--muted); font-size: 13px; }
+.bot .r { text-align: right; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.bot.off { opacity: .55; }
+@media (prefers-reduced-motion: no-preference) { .bot:not(.off) svg.anim { animation: bob 2.4s ease-in-out infinite; } }
+@keyframes bob { 50% { transform: translateY(-3px); } }
+textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); padding: 10px; font-family: var(--mono); font-size: 13px; resize: vertical; }
+.out { background: var(--bg); border: 1px solid var(--line); border-left: 3px solid var(--cmd); padding: 9px 11px; font-size: 14px; }
+.out[hidden] { display: none; }
+.out b { font-family: var(--mono); font-weight: 500; }
+.acts2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
-/* ---------- Trading ---------- */
+/* ---------- Graphiques ---------- */
+.gbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.src { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border: 1px solid currentColor; }
+.src.live { color: var(--gain); } .src.demo { color: var(--cash); }
+.cbox { background: var(--bg); border: 1px solid var(--line); position: relative; }
+#pchart { height: 340px; } #rchart { height: 110px; border-top: 1px solid var(--line); } #mchart { height: 120px; border-top: 1px solid var(--line); }
+.clabel { position: absolute; left: 8px; top: 6px; z-index: 3; font-family: var(--mono); font-size: 10.5px; color: var(--muted); pointer-events: none; display: flex; gap: 10px; flex-wrap: wrap; }
+.clabel i { font-style: normal; }
+.cfail { padding: 30px 16px; text-align: center; color: var(--muted); font-size: 14px; }
+.dash { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 8px; }
+.dash div { background: var(--panel); border: 1px solid var(--line); padding: 10px; }
+.dash small { display: block; color: var(--muted); font-size: 12px; }
+.dash strong { font-family: var(--pixel); font-weight: 400; font-size: 16px; }
+.cond { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.cond:last-of-type { border-bottom: 0; }
+.tick { flex: none; width: 22px; height: 22px; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.tick.y { background: rgba(61,245,168,.18); color: var(--gain); }
+.tick.n { background: rgba(255,77,109,.18); color: var(--loss); }
+.cond span:last-child { margin-left: auto; color: var(--muted); font-size: 13px; text-align: right; font-family: var(--mono); }
+.gauge { height: 8px; background: var(--panel2); overflow: hidden; margin: 10px 0 4px; }
+.gauge i { display: block; height: 100%; background: linear-gradient(90deg, var(--cmd), var(--gain)); transition: width .4s; }
+.rv { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); gap: 8px; }
+pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 10px; font-family: var(--mono); font-size: 12px; line-height: 1.5; overflow-x: auto; }
+#pineCode { max-height: 240px; }
+
+/* ---------- Diagnostics ---------- */
 .big { font-family: var(--pixel); font-size: clamp(36px, 10vw, 52px); line-height: 1; margin: 4px 0; }
 .delta { font-weight: 600; }
 .chart { width: 100%; height: auto; display: block; touch-action: pan-y; overflow: visible; }
@@ -165,25 +223,13 @@ aside { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .stats6 div:nth-last-child(-n+3) { border-bottom: 0; }
 .stats6 small { display: block; color: var(--muted); font-size: 12px; }
 .stats6 strong { font-family: var(--pixel); font-weight: 400; font-size: 18px; font-variant-numeric: tabular-nums; }
-.bots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 8px; }
-.bot { background: var(--panel); border: 1px solid var(--line); padding: 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
-.bot .n { font-family: var(--pixel); font-size: 13px; }
-.bot .d { color: var(--muted); font-size: 13px; }
-.bot .r { text-align: right; font-family: var(--mono); font-size: 13.5px; font-variant-numeric: tabular-nums; }
-.bot.off { opacity: .55; }
-.cond { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
-.cond:last-of-type { border-bottom: 0; }
-.tick { flex: none; width: 22px; height: 22px; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
-.tick.y { background: rgba(61,245,168,.18); color: var(--gain); }
-.tick.n { background: rgba(255,77,109,.18); color: var(--loss); }
-.cond span:last-child { margin-left: auto; color: var(--muted); font-size: 13px; text-align: right; }
-.gauge { height: 8px; background: var(--panel2); overflow: hidden; margin: 10px 0 4px; }
-.gauge i { display: block; height: 100%; background: linear-gradient(90deg, var(--cmd), var(--gain)); }
-.rv { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); gap: 8px; }
-textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); padding: 10px; font-family: var(--mono); font-size: 13px; resize: vertical; }
-.out { background: var(--bg); border: 1px solid var(--line); border-left: 3px solid var(--cmd); padding: 9px 11px; font-size: 14px; }
-.out[hidden] { display: none; }
-.out b { font-family: var(--mono); font-weight: 500; }
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-family: var(--mono); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.hm text { fill: var(--muted); font-size: 10px; }
+.hm rect { cursor: pointer; }
 .rk { padding: 11px 0; border-bottom: 1px solid var(--line); }
 .rk .h { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; }
 .rk .h span:last-child { font-weight: 400; color: var(--muted); font-size: 13px; text-align: right; }
@@ -192,7 +238,8 @@ textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); pa
 .killbox { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; background: var(--panel2); border: 1px solid var(--line); margin-top: 12px; }
 .sw2 { flex: none; width: 52px; height: 30px; border: 0; background: var(--line); position: relative; transition: background .2s; }
 .sw2::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: var(--fg); transition: transform .2s; }
-.sw2[aria-checked="true"] { background: var(--guard); }
+.sw2[aria-checked="true"] { background: var(--glow); }
+.sw2.danger[aria-checked="true"] { background: var(--guard); }
 .sw2[aria-checked="true"]::after { transform: translateX(22px); }
 input[type=range] { width: 100%; accent-color: var(--glow); }
 .res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -206,8 +253,6 @@ input[type=range] { width: 100%; accent-color: var(--glow); }
 .ins p { margin: 0; font-size: 14px; }
 details { background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; }
 summary { cursor: pointer; font-weight: 600; }
-pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 10px; font-family: var(--mono); font-size: 12px; line-height: 1.5; overflow-x: auto; }
-.acts2 { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .demo { background: rgba(255,184,77,.1); border: 1px solid rgba(255,184,77,.4); color: var(--cash); padding: 8px 11px; font-size: 13.5px; }
 .demo[hidden] { display: none; }
 
@@ -230,7 +275,6 @@ pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 
 .warnbox { border: 1px solid var(--guard); background: rgba(255,77,109,.06); padding: 10px 12px; font-size: 14px; }
 .warnbox b { color: var(--guard); font-weight: 600; }
 .c-btc { --c: #f7931a; } .c-eth { --c: #8a9cff; } .c-interac { --c: var(--cash); }
-.links { display: flex; flex-direction: column; }
 .lrow { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
 .lrow:last-child { border-bottom: 0; }
 .lrow b { font-weight: 600; }
@@ -238,15 +282,36 @@ pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 
 .st { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border: 1px solid currentColor; white-space: nowrap; }
 .st.ok { color: var(--gain); } .st.todo { color: var(--cash); } .st.off { color: var(--muted); }
 
-/* ---------- Plus ---------- */
-.linkcard { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; text-decoration: none; color: var(--fg); }
+/* ---------- Plus, Équipe, Paramètres ---------- */
+.hub { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+.linkcard { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; text-decoration: none; color: var(--fg); text-align: left; width: 100%; }
 .linkcard:hover { border-color: var(--glow); }
 .linkcard b { font-family: var(--pixel); font-weight: 400; font-size: 13px; color: var(--glow); display: block; }
 .linkcard span { color: var(--muted); font-size: 13.5px; }
+.back { align-self: flex-start; }
 .cmds { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 12px; font-size: 14px; }
-.cmds code { font-family: var(--mono); color: var(--cmd); }
-#pineCode { max-height: 260px; }
-.toast { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; background: var(--fg); color: var(--bg); padding: 9px 14px; font-size: 13.5px; max-width: 88vw; z-index: 30; transition: all .25s; pointer-events: none; text-align: center; }
+.cmds code { color: var(--cmd); }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.pc { display: flex; gap: 12px; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--c); padding: 12px; }
+.pc svg { flex: none; width: 88px; height: 88px; }
+.pc .nm { font-family: var(--pixel); font-size: 17px; color: var(--c); line-height: 1.1; }
+.pc .rl { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 3px 0 6px; }
+.pc p { margin: 0 0 8px; font-size: 14px; }
+.pc .tl { display: flex; flex-wrap: wrap; gap: 5px; }
+.pc .tl span { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); padding: 1px 7px; }
+@media (max-width: 420px) { .pc { flex-direction: column; } }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; }
+.flow div { flex: 1 1 140px; background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; }
+.flow b { display: block; color: var(--cmd); font-size: 14px; }
+.flow small { color: var(--muted); font-size: 13px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--line); padding: 7px 11px; font-size: 13.5px; }
+.swatch i { width: 16px; height: 16px; display: block; }
+.swatch[aria-pressed="true"] { border-color: var(--glow); color: var(--glow); }
+.setrow { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.setrow:last-child { border-bottom: 0; }
+.setrow small { display: block; color: var(--muted); font-size: 12.5px; }
+.toast { position: fixed; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; background: var(--fg); color: var(--bg); padding: 9px 14px; font-size: 13.5px; max-width: 88vw; z-index: 30; transition: all .25s; pointer-events: none; text-align: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 @media (prefers-reduced-motion: reduce) { .pill.talk, #log li.new { animation: none; } * { transition: none !important; } }
 </style>
@@ -254,26 +319,23 @@ pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <div class="tag">Caro en ligne · simulation</div>
+      <div class="tag">Caro en ligne</div>
       <h1>BLACK BOX</h1>
     </div>
     <span class="kill-pill" id="killPill">Bots actifs</span>
   </header>
 
-  <!-- ================= QG ================= -->
-  <div class="view" id="v-qg">
+  <!-- ================= SALLE ================= -->
+  <div class="view" id="v-salle">
     <div class="wrap">
       <div class="cmdbar">
-        <form class="say" id="say">
-          <input id="sayIn" type="text" autocomplete="off" maxlength="120" placeholder="Hey Caro… ex. : « vérifie mon signal SOL »" aria-label="Message à Caro">
-          <button class="btn" type="submit">Envoyer</button>
-        </form>
+        <div class="pagetitle">La salle des bots</div>
         <div class="missions" id="missions"></div>
       </div>
       <div class="main">
         <div class="stage">
           <div class="scroller" id="scroller">
-            <canvas id="scene" width="1080" height="708" aria-label="Salle de contrôle Black Box : les 20 agents travaillent à leur poste et s'envoient des messages"></canvas>
+            <canvas id="scene" width="1080" height="708" aria-label="Salle de contrôle Black Box : les 20 agents travaillent et s'envoient des messages ; CARO, la tête au centre, décide"></canvas>
           </div>
           <div class="hud">
             <div class="box"><span class="mname" id="hudName">En attente</span><div class="bar"><i id="hudBar"></i></div></div>
@@ -302,42 +364,11 @@ pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 
           </div>
         </aside>
       </div>
-      <section class="sec">
-        <h2>L'équipe</h2>
-        <div id="team"></div>
-      </section>
-    </div>
-  </div>
-
-  <!-- ================= TRADING ================= -->
-  <div class="view" id="v-trading" hidden>
-    <div class="narrow">
-      <div class="demo" id="demoBanner">Données de démonstration. Importe tes vrais trades en bas de cette page pour voir tes résultats.</div>
-
-      <section class="sec">
-        <span class="sub">Capital en mode papier</span>
-        <div class="big" id="eqNum">1 000 $</div>
-        <div class="delta" id="eqDelta"></div>
-        <div class="chips" id="rangeChips">
-          <button class="chip" type="button" data-r="7" aria-pressed="false">7 j</button>
-          <button class="chip" type="button" data-r="30" aria-pressed="false">30 j</button>
-          <button class="chip" type="button" data-r="all" aria-pressed="true">Tout</button>
-        </div>
-        <svg class="chart" id="eq" viewBox="0 0 360 200" role="img" aria-label="Courbe du capital"></svg>
-        <div class="scrub" id="eqLabel"></div>
-        <div class="stats6" id="tstats"></div>
-      </section>
 
       <section class="sec">
         <h2>Le garage des bots</h2>
-        <p class="sub">Démarrer ou mettre en pause change seulement l'affichage. Les bots seront pilotés quand le serveur CARO sera branché.</p>
-        <div class="bots" id="bots"></div>
-      </section>
-
-      <section class="sec card">
-        <h2>Score du signal</h2>
-        <p class="sub">Exemple sur SOL en 15 minutes, avec 5 règles : EMA 200, EMA 50, MACD, RSI, Bollinger.</p>
-        <div id="signal"></div>
+        <p class="sub">Démarrer ou mettre en pause change l'affichage seulement, en attendant que le serveur CARO pilote les vrais bots.</p>
+        <div class="garage" id="bots"></div>
       </section>
 
       <section class="sec card">
@@ -348,97 +379,46 @@ pre { margin: 0; background: var(--bg); border: 1px solid var(--line); padding: 
         <div class="out" id="sigOut" hidden></div>
       </section>
 
-      <section class="sec card">
-        <h2>Moteur de risque</h2>
-        <p class="sub">Seule la perte du jour est calculée sur tes trades. Les autres lignes sont des exemples.</p>
-        <div id="risk"></div>
-        <div class="killbox">
-          <div><b>Interrupteur d'urgence</b><div class="note" id="killTxt">Bots actifs</div></div>
-          <button class="sw2" id="kill" type="button" role="switch" aria-checked="false" aria-label="Interrupteur d'urgence"></button>
-        </div>
-        <p class="note">Pour l'instant, l'interrupteur change l'affichage et met tous les bots en pause à l'écran.</p>
-      </section>
-
-      <section class="sec card">
-        <h2>Et si on rejouait tes trades 300 fois?</h2>
-        <p class="sub">On remélange tes résultats pour simuler 100 trades à venir. Bouge le curseur pour voir l'effet du risque par trade.</p>
-        <div class="rv"><span>Risque par trade</span><b id="mcRiskV" style="color:var(--fg)">1 %</b></div>
-        <input type="range" id="mcRisk" min="0.5" max="5" step="0.5" value="1" aria-label="Risque par trade">
-        <svg class="chart" id="fan" viewBox="0 0 360 210" role="img" aria-label="Simulation Monte Carlo"></svg>
-        <div class="res" id="mcRes"></div>
-        <p class="note" id="mcNote"></p>
-        <div class="acts2"><button class="ghost" id="mcAgain" type="button">Relancer la simulation</button></div>
-      </section>
-
-      <section class="sec card">
-        <h2>Angles morts</h2>
-        <p class="sub">Calculés à partir de tes trades.</p>
-        <div id="scout"></div>
-      </section>
-
-      <details>
-        <summary>Importer mes vrais trades</summary>
-        <p class="note" style="margin-top:8px">Colle une liste JSON. Chaque trade a une date <b>t</b>, un <b>symbol</b> et soit <b>r</b> (gain en multiples du risque), soit <b>pnl_pct</b> (en % du capital). <b>score</b> est facultatif.</p>
-        <pre>[{"t":"2026-10-01T14:30:00Z","symbol":"SOL","r":1.8,"score":4}]</pre>
-        <textarea id="impTxt" rows="5" placeholder="Colle ton JSON ici" spellcheck="false" aria-label="Trades en JSON" style="margin-top:8px"></textarea>
-        <div class="acts2">
-          <button class="btn" id="impGo" type="button">Charger mes trades</button>
-          <button class="ghost" id="impDemo" type="button">Revenir à la démo</button>
-        </div>
-      </details>
-    </div>
-  </div>
-
-  <!-- ================= WALLET ================= -->
-  <div class="view" id="v-wallet" hidden>
-    <div class="narrow">
-      <section class="sec card">
-        <h2>Ton portefeuille Phantom</h2>
-        <div class="wstate">
-          <div><div id="wState"><span class="dot"></span>Non connecté</div><div class="note" id="wAddr">Connexion en lecture seule. Aucune signature n'est demandée.</div></div>
-          <button class="btn" id="connectBtn" type="button">Connecter Phantom</button>
-        </div>
-        <p class="note">Pour connecter Phantom, ouvre l'application dans le navigateur intégré de l'app Phantom. Le solde s'affichera quand le serveur CARO sera branché.</p>
-      </section>
-
-      <section class="sec" id="paiements">
-        <h2>Payer Black Box</h2>
-        <p class="sub">Envoie un paiement depuis ta propre app : ton wallet crypto ou ta banque. Cette page ne touche jamais à ton argent.</p>
-        <div class="paygrid" id="paygrid"></div>
-        <div class="warnbox"><b>Black Box ne te demandera jamais ta phrase secrète (seed), ta clé privée ni ton mot de passe bancaire.</b> Si quelqu'un te les demande au nom de Black Box, c'est une arnaque. Avant d'envoyer, compare les 4 premiers et les 4 derniers caractères de l'adresse.</div>
-      </section>
-
-      <section class="sec card">
-        <h2>Connexions</h2>
-        <div class="links" id="links"></div>
-      </section>
-    </div>
-  </div>
-
-  <!-- ================= PLUS ================= -->
-  <div class="view" id="v-plus" hidden>
-    <div class="narrow">
       <section class="sec">
-        <h2>Apprendre</h2>
-        <a class="linkcard" href="https://claude.ai/artifact/Y9KrzRw6AEa56uxj7vuqU3" target="_blank" rel="noopener"><div><b>Académie CARO</b><span>L'anatomie d'un agent, la route en 4 niveaux, le Raccourci « Hey Caro »</span></div><span>↗</span></a>
+        <h2>L'équipe</h2>
+        <div id="team"></div>
       </section>
+    </div>
+  </div>
 
-      <section class="sec card">
-        <h2>CARO sur Telegram</h2>
-        <p class="sub">Le vrai CARO, dans ta poche. Le code est dans ton dépôt GitHub IntelTrace2, dossier <code>caro_bot</code>.</p>
-        <div class="cmds">
-          <code>texte libre</code><span>Jaser, recherche web, rappels</span>
-          <code>/prix btc eth</code><span>Prix crypto en $ CA et $ US</span>
-          <code>/3c</code><span>Tes trades 3Commas ouverts (/3c bots)</span>
-          <code>/rappels</code><span>Tes rappels à venir (/annule 3)</span>
-          <code>/oublie</code><span>Efface la mémoire de la conversation</span>
+  <!-- ================= GRAPHIQUES ================= -->
+  <div class="view" id="v-graph" hidden>
+    <div class="wrap">
+      <div class="pagetitle">Graphiques et indicateurs</div>
+      <div class="gbar">
+        <div class="chips" id="symChips">
+          <button class="chip" type="button" data-s="BTCUSD" aria-pressed="false">BTC</button>
+          <button class="chip" type="button" data-s="ETHUSD" aria-pressed="false">ETH</button>
+          <button class="chip" type="button" data-s="SOLUSD" aria-pressed="true">SOL</button>
         </div>
-        <p class="note">Si Claude est indisponible, CARO répond en mode secours avec Ollama.</p>
-      </section>
-
+        <div class="chips" id="tfChips">
+          <button class="chip" type="button" data-t="15m" aria-pressed="false">15 min</button>
+          <button class="chip" type="button" data-t="1hr" aria-pressed="true">1 h</button>
+          <button class="chip" type="button" data-t="6hr" aria-pressed="false">6 h</button>
+          <button class="chip" type="button" data-t="1day" aria-pressed="false">1 j</button>
+        </div>
+        <div class="acts2"><span class="src demo" id="srcPill">Démo</span><button class="ghost" id="reload" type="button">Charger les vrais prix</button></div>
+      </div>
+      <p class="note" id="srcNote">Les vrais prix viennent de ton connecteur Gemini, en lecture seule. Le premier chargement te demande ton accord.</p>
+      <div class="cbox" id="chartsBox">
+        <div style="position:relative"><div class="clabel"><i style="color:#4fd1ff">EMA 20</i><i style="color:#b58cff">EMA 50</i><i style="color:#ffb84d">EMA 200</i><i>Bollinger 20, 2</i></div><div id="pchart"></div></div>
+        <div style="position:relative"><div class="clabel"><i>RSI 14 · 30 / 70</i></div><div id="rchart"></div></div>
+        <div style="position:relative"><div class="clabel"><i style="color:#4fd1ff">MACD</i><i style="color:#ffb84d">Signal</i><i>12, 26, 9</i></div><div id="mchart"></div></div>
+      </div>
+      <div class="dash" id="gdash"></div>
       <section class="sec card">
-        <h2>Script TradingView</h2>
-        <p class="sub">EMA 20/50/200, Bollinger, RSI, MACD, signaux, tableau de bord et alertes. Colle-le dans le Pine Editor, puis Enregistrer et Ajouter au graphique.</p>
+        <h2>Score du signal</h2>
+        <p class="sub" id="scoreSub">Les 5 règles, calculées sur la dernière bougie.</p>
+        <div id="signal"></div>
+      </section>
+      <section class="sec card">
+        <h2>Le même script dans TradingView</h2>
+        <p class="sub">Cette page calcule les mêmes indicateurs que ton script CARO. Pour les alertes dans TradingView, colle-le dans le Pine Editor, puis Enregistrer et Ajouter au graphique.</p>
         <pre id="pineCode">//@version=6
 // CARO · Indicateurs Black Box
 // Tendance (EMA 20/50/200), volatilité (Bollinger), momentum (RSI, MACD),
@@ -529,37 +509,222 @@ alertcondition(rsiOverbought, "CARO · RSI suracheté", "CARO : RSI suracheté s
 alertcondition(rsiOversold, "CARO · RSI survendu", "CARO : RSI survendu sur {{ticker}} à {{close}}")</pre>
         <div class="acts2"><button class="ghost" id="copyPine" type="button" data-label="Copier le script">Copier le script</button></div>
       </section>
+      <p class="note">Les signaux décrivent ce que le prix a fait, pas ce qu'il va faire. Ce n'est pas un conseil financier.</p>
+    </div>
+  </div>
 
+  <!-- ================= DIAGNOSTICS ================= -->
+  <div class="view" id="v-diag" hidden>
+    <div class="narrow">
+      <div class="pagetitle">Diagnostics</div>
+      <div class="demo" id="demoBanner">Données de démonstration. Importe tes vrais trades en bas de la page pour voir tes résultats.</div>
       <section class="sec">
-        <h2>Les pages d'avant</h2>
-        <a class="linkcard" href="https://claude.ai/artifact/8m82tjb1XtTB911UwRPEXf" target="_blank" rel="noopener"><div><b>Projet Black Box</b><span>La première présentation des agents</span></div><span>↗</span></a>
-        <a class="linkcard" href="https://claude.ai/code/artifact/90522a25-b879-464c-8618-2b0f5a2a26b6" target="_blank" rel="noopener"><div><b>Black Box QG mobile</b><span>Le premier garage des bots</span></div><span>↗</span></a>
-        <a class="linkcard" href="https://claude.ai/code/artifact/9fc98455-251a-4e44-9d91-c97340de844f" target="_blank" rel="noopener"><div><b>Cybertrash</b><span>Le premier centre de contrôle trading</span></div><span>↗</span></a>
+        <span class="sub">Capital en mode papier</span>
+        <div class="big" id="eqNum">1 000 $</div>
+        <div class="delta" id="eqDelta"></div>
+        <div class="chips" id="rangeChips">
+          <button class="chip" type="button" data-r="7" aria-pressed="false">7 j</button>
+          <button class="chip" type="button" data-r="30" aria-pressed="false">30 j</button>
+          <button class="chip" type="button" data-r="all" aria-pressed="true">Tout</button>
+        </div>
+        <svg class="chart" id="eq" viewBox="0 0 360 200" role="img" aria-label="Courbe du capital"></svg>
+        <div class="scrub" id="eqLabel"></div>
+        <div class="stats6" id="tstats"></div>
       </section>
 
       <section class="sec card">
+        <h2>Rentabilité par mois</h2>
+        <svg class="chart" id="mbars" viewBox="0 0 360 150" role="img" aria-label="Rendement par mois"></svg>
+        <div class="tbl"><table><thead><tr><th>Mois</th><th>Trades</th><th>Gagnants</th><th>Rendement</th><th>Meilleur</th><th>Pire</th></tr></thead><tbody id="mtable"></tbody></table></div>
+      </section>
+
+      <section class="sec card">
+        <h2>Tes 90 jours en couleurs</h2>
+        <p class="sub">Vert pour les bons jours, rouge pour les mauvais. Touche une case.</p>
+        <svg class="chart hm" id="hm" viewBox="0 0 360 200" role="img" aria-label="Calendrier des gains et pertes"></svg>
+        <div class="scrub" id="hmLabel"></div>
+      </section>
+
+      <section class="sec card">
+        <h2>Moteur de risque</h2>
+        <p class="sub">Seule la perte du jour est calculée sur tes trades. Les autres lignes sont des exemples.</p>
+        <div id="risk"></div>
+        <div class="killbox">
+          <div><b>Interrupteur d'urgence</b><div class="note" id="killTxt">Bots actifs</div></div>
+          <button class="sw2 danger" id="kill" type="button" role="switch" aria-checked="false" aria-label="Interrupteur d'urgence"></button>
+        </div>
+        <p class="note">Pour l'instant, l'interrupteur met tous les bots en pause à l'écran. Il pilotera les vrais bots quand le serveur CARO sera branché.</p>
+      </section>
+
+      <section class="sec card">
+        <h2>Et si on rejouait tes trades 300 fois?</h2>
+        <p class="sub">On remélange tes résultats pour simuler 100 trades à venir. Bouge le curseur pour voir l'effet du risque par trade.</p>
+        <div class="rv"><span>Risque par trade</span><b id="mcRiskV" style="color:var(--fg)">1 %</b></div>
+        <input type="range" id="mcRisk" min="0.5" max="5" step="0.5" value="1" aria-label="Risque par trade">
+        <svg class="chart" id="fan" viewBox="0 0 360 210" role="img" aria-label="Simulation Monte Carlo"></svg>
+        <div class="res" id="mcRes"></div>
+        <p class="note" id="mcNote"></p>
+        <div class="acts2"><button class="ghost" id="mcAgain" type="button">Relancer la simulation</button></div>
+      </section>
+
+      <section class="sec card">
+        <h2>Angles morts</h2>
+        <div id="scout"></div>
+      </section>
+
+      <details>
+        <summary>Importer mes vrais trades</summary>
+        <p class="note" style="margin-top:8px">Colle une liste JSON. Chaque trade a une date <b>t</b>, un <b>symbol</b> et soit <b>r</b> (gain en multiples du risque), soit <b>pnl_pct</b> (en % du capital). <b>score</b> est facultatif.</p>
+        <pre>[{"t":"2026-10-01T14:30:00Z","symbol":"SOL","r":1.8,"score":4}]</pre>
+        <textarea id="impTxt" rows="5" placeholder="Colle ton JSON ici" spellcheck="false" aria-label="Trades en JSON" style="margin-top:8px"></textarea>
+        <div class="acts2" style="margin-top:8px">
+          <button class="btn" id="impGo" type="button">Charger mes trades</button>
+          <button class="ghost" id="impDemo" type="button">Revenir à la démo</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ================= WALLET ================= -->
+  <div class="view" id="v-wallet" hidden>
+    <div class="narrow">
+      <div class="pagetitle">Wallet et connexions</div>
+      <section class="sec card">
+        <h2>Ton portefeuille Phantom</h2>
+        <div class="wstate">
+          <div><div id="wState"><span class="dot"></span>Non connecté</div><div class="note" id="wAddr">Connexion en lecture seule. Aucune signature n'est demandée.</div></div>
+          <button class="btn" id="connectBtn" type="button">Connecter Phantom</button>
+        </div>
+        <p class="note">Pour connecter Phantom, ouvre l'application dans le navigateur intégré de l'app Phantom. Le solde s'affichera quand le serveur CARO sera branché.</p>
+      </section>
+      <section class="sec">
+        <h2>Payer Black Box</h2>
+        <p class="sub">Envoie un paiement depuis ta propre app : ton wallet crypto ou ta banque. Cette page ne touche jamais à ton argent.</p>
+        <div class="paygrid" id="paygrid"></div>
+        <div class="warnbox"><b>Black Box ne te demandera jamais ta phrase secrète (seed), ta clé privée ni ton mot de passe bancaire.</b> Si quelqu'un te les demande au nom de Black Box, c'est une arnaque. Avant d'envoyer, compare les 4 premiers et les 4 derniers caractères de l'adresse.</div>
+      </section>
+      <section class="sec card">
+        <h2>Connexions</h2>
+        <div id="links"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ================= PLUS (hub) ================= -->
+  <div class="view" id="v-plus" hidden>
+    <div class="narrow">
+      <div class="pagetitle">Plus</div>
+      <div class="hub">
+        <button class="linkcard" type="button" data-go="equipe"><div><b>Projet Black Box</b><span>L'équipe des 20 agents, en portraits</span></div><span>›</span></button>
+        <button class="linkcard" type="button" data-go="reglages"><div><b>Paramètres</b><span>Couleurs, tenue des agents, voix</span></div><span>›</span></button>
+        <button class="linkcard" type="button" data-go="telegram"><div><b>CARO sur Telegram</b><span>Le vrai CARO, dans ta poche</span></div><span>›</span></button>
+        <a class="linkcard" href="https://claude.ai/artifact/Y9KrzRw6AEa56uxj7vuqU3" target="_blank" rel="noopener"><div><b>Académie CARO</b><span>Apprendre à bâtir ton agent</span></div><span>↗</span></a>
+      </div>
+      <section class="sec card">
+        <h2>Les trois pages réunies ici</h2>
+        <div class="lrow"><div><b>Projet Black Box</b><small>Devient la page Équipe, juste au-dessus</small></div><span class="st ok">Intégré</span></div>
+        <div class="lrow"><div><b>Black Box QG mobile</b><small>Son garage des bots et ses signaux sont dans la Salle</small></div><span class="st ok">Intégré</span></div>
+        <div class="lrow"><div><b>Cybertrash</b><small>Devient la page Diagnostics</small></div><span class="st ok">Intégré</span></div>
+      </section>
+      <section class="sec card">
         <h2>Sur ton iPhone</h2>
-        <p class="sub">Ouvre ce lien dans Safari, touche Partager, puis « Sur l'écran d'accueil ». Black Box s'ouvre alors d'un toucher, comme une app.</p>
+        <p class="sub">Ouvre le lien de l'application dans Safari, touche Partager, puis « Sur l'écran d'accueil ».</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- ================= ÉQUIPE (Projet Black Box) ================= -->
+  <div class="view" id="v-equipe" hidden>
+    <div class="wrap">
+      <button class="ghost back" type="button" data-go="plus">‹ Plus</button>
+      <div class="pagetitle">Projet Black Box</div>
+      <p class="sub">20 agents qui travaillent ensemble. Tu parles à CARO, il s'occupe du reste.</p>
+      <div class="flow">
+        <div><b>Tu parles à CARO</b><small>Bouton CARO, en bas à droite</small></div>
+        <div><b>VOX comprend</b><small>Ta demande devient une tâche</small></div>
+        <div><b>CARO répartit</b><small>Il choisit le bon agent</small></div>
+        <div><b>L'agent livre</b><small>Tu valides avant les gros gestes</small></div>
+        <div style="border-color:var(--guard)"><b style="color:var(--guard)">Les gardiens</b><small>AEGIS, SENTINEL, SENTRY, CIPHER</small></div>
+      </div>
+      <div id="portraits"></div>
+    </div>
+  </div>
+
+  <!-- ================= PARAMÈTRES ================= -->
+  <div class="view" id="v-reglages" hidden>
+    <div class="narrow">
+      <button class="ghost back" type="button" data-go="plus">‹ Plus</button>
+      <div class="pagetitle">Paramètres</div>
+      <section class="sec card">
+        <h2>Couleur de l'interface</h2>
+        <div class="swatches" id="accentSw"></div>
+      </section>
+      <section class="sec card">
+        <h2>Fond</h2>
+        <div class="swatches" id="bgSw"></div>
+      </section>
+      <section class="sec card">
+        <h2>Tenue des agents</h2>
+        <p class="sub">La couleur des casques dans la salle.</p>
+        <div class="swatches" id="outfitSw"></div>
+      </section>
+      <section class="sec card">
+        <div class="setrow"><div>Animations<small>Les agents bougent, les écrans défilent</small></div><button class="sw2" type="button" role="switch" id="optAnim" aria-label="Animations"></button></div>
+        <div class="setrow"><div>Noms toujours visibles<small>Affiche le nom de chaque agent dans la salle</small></div><button class="sw2" type="button" role="switch" id="optLabels" aria-label="Noms toujours visibles"></button></div>
+        <div class="setrow"><div>CARO parle à voix haute<small>Il lit ses réponses</small></div><button class="sw2" type="button" role="switch" id="optVoice" aria-label="CARO parle à voix haute"></button></div>
+        <div class="setrow"><div>Missions automatiques<small>La salle enchaîne les missions toute seule</small></div><button class="sw2" type="button" role="switch" id="optAuto" aria-label="Missions automatiques"></button></div>
+      </section>
+      <p class="note">Tes réglages restent dans ce navigateur.</p>
+    </div>
+  </div>
+
+  <!-- ================= TELEGRAM ================= -->
+  <div class="view" id="v-telegram" hidden>
+    <div class="narrow">
+      <button class="ghost back" type="button" data-go="plus">‹ Plus</button>
+      <div class="pagetitle">CARO sur Telegram</div>
+      <section class="sec card">
+        <p class="sub">Le code est dans ton dépôt GitHub IntelTrace2, dossier <code>caro_bot</code>. Le guide d'installation est dans son README.</p>
+        <div class="cmds">
+          <code>texte libre</code><span>Jaser, recherche web, rappels</span>
+          <code>/prix btc eth</code><span>Prix crypto en $ CA et $ US</span>
+          <code>/3c</code><span>Tes trades 3Commas ouverts (/3c bots)</span>
+          <code>/rappels</code><span>Tes rappels à venir (/annule 3)</span>
+          <code>/oublie</code><span>Efface la mémoire de la conversation</span>
+        </div>
+        <p class="note">Si Claude est indisponible, CARO répond en mode secours avec Ollama.</p>
       </section>
     </div>
   </div>
 </div>
 
+<!-- Agent vocal CARO -->
+<button class="carofab" id="caroFab" type="button" aria-label="Parler à CARO" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><b>CARO</b></button>
+<div class="sheet" id="sheet" hidden role="dialog" aria-label="Parler à CARO">
+  <div class="hd"><div><b>CARO</b> <span id="vmode">prêt</span></div><button class="ghost" type="button" id="sheetClose" style="padding:3px 10px">Fermer</button></div>
+  <div class="convo" id="convo"></div>
+  <div class="sugg" id="sugg"></div>
+  <form class="vform" id="vform"><input id="vin" type="text" autocomplete="off" maxlength="300" placeholder="Parle ou écris à CARO…" aria-label="Message à CARO"><button class="btn" type="submit">Go</button></form>
+  <div class="vhint">Pour parler : touche le champ, puis le micro de ton clavier iPhone, et dicte.</div>
+</div>
+
 <nav class="tabs" aria-label="Sections"><div class="in" role="tablist">
-  <button type="button" role="tab" data-tab="qg" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>QG</button>
-  <button type="button" role="tab" data-tab="trading" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 5-8 4 5"/><path d="M3 21h18"/></svg>Trading</button>
+  <button type="button" role="tab" data-tab="salle" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>Salle</button>
+  <button type="button" role="tab" data-tab="graph" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 4v16M6 8h-2v6h2M12 6v14M12 9h-2v5h2M18 3v15M18 6h-2v8h2"/></svg>Graphiques</button>
+  <button type="button" role="tab" data-tab="diag" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 5-8 4 5"/><path d="M3 21h18"/></svg>Diagnostics</button>
   <button type="button" role="tab" data-tab="wallet" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h5M3 9h14"/></svg>Wallet</button>
   <button type="button" role="tab" data-tab="plus" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Plus</button>
 </div></nav>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <script>
-// Couleurs reprises des tokens CSS (le canvas ne lit pas les variables).
 var COL = { cmd: "#4fd1ff", day: "#3df5a8", make: "#b58cff", cash: "#ffb84d", guard: "#ff4d6d", user: "#d8f36a" };
 var GLOW = "#d8f36a";
 var RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 var $ = function (id) { return document.getElementById(id); };
+var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function drop(k) { try { localStorage.removeItem(k); } catch (e) {} }
@@ -567,37 +732,94 @@ var tt;
 function toast(m) { var t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove("show"); }, 3200); }
 
 /* ============================================================
+   RÉGLAGES
+   ============================================================ */
+var ACCENTS = [["citron", "Néon citron", "#d8f36a"], ["cyan", "Cyan glace", "#4fd1ff"], ["magenta", "Magenta", "#ff5ec8"], ["matrix", "Matrix", "#3df5a8"], ["ambre", "Ambre", "#ffb84d"], ["violet", "Violet", "#b58cff"]];
+var BGS = [["nuit", "Nuit", "#06080d", "#0c111c", "#101727", "#1c2740"], ["marine", "Bleu nuit", "#0b0f1a", "#121a2b", "#172036", "#1f2a42"], ["mauve", "Mauve sombre", "#0d0a16", "#151025", "#1b1530", "#2a2145"], ["charbon", "Charbon", "#0a0a0a", "#141414", "#1b1b1b", "#2a2a2a"]];
+var OUTFITS = [["equipe", "Couleurs d'équipe", "linear-gradient(90deg,#4fd1ff,#3df5a8,#b58cff,#ffb84d,#ff4d6d)"], ["or", "Casques dorés", "#ffd34d"], ["furtif", "Mode furtif", "#3a4766"], ["arc", "Arc-en-ciel", "conic-gradient(#ff4d6d,#ffb84d,#d8f36a,#3df5a8,#4fd1ff,#b58cff,#ff4d6d)"], ["accent", "Couleur de l'interface", "var(--glow)"]];
+var SET = { accent: "citron", bg: "nuit", outfit: "equipe", anim: true, labels: false, voice: true, auto: true };
+try { var savedSet = JSON.parse(load("bb_settings") || "{}"); for (var sk in savedSet) if (sk in SET) SET[sk] = savedSet[sk]; } catch (e) {}
+function STILL() { return RM || !SET.anim; }
+function applySettings() {
+  var a = ACCENTS.filter(function (x) { return x[0] === SET.accent; })[0] || ACCENTS[0];
+  var b = BGS.filter(function (x) { return x[0] === SET.bg; })[0] || BGS[0];
+  var r = document.documentElement.style;
+  r.setProperty("--glow", a[2]); r.setProperty("--user", a[2]);
+  r.setProperty("--bg", b[2]); r.setProperty("--panel", b[3]); r.setProperty("--panel2", b[4]); r.setProperty("--line", b[5]);
+  GLOW = a[2]; COL.user = a[2];
+  store("bb_settings", JSON.stringify(SET));
+  if (typeof buildStatic === "function" && staticReady) buildStatic();
+  if (typeof themeCharts === "function") themeCharts();
+  renderSettings();
+}
+function swatchRow(box, list, key, colorIdx) {
+  $(box).innerHTML = "";
+  list.forEach(function (x) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "swatch"; b.setAttribute("aria-pressed", String(SET[key] === x[0]));
+    var i = document.createElement("i"); i.style.background = x[colorIdx]; b.appendChild(i);
+    b.appendChild(document.createTextNode(x[1]));
+    b.addEventListener("click", function () { SET[key] = x[0]; applySettings(); });
+    $(box).appendChild(b);
+  });
+}
+function renderSettings() {
+  swatchRow("accentSw", ACCENTS, "accent", 2);
+  swatchRow("bgSw", BGS, "bg", 3);
+  swatchRow("outfitSw", OUTFITS, "outfit", 2);
+  $("optAnim").setAttribute("aria-checked", String(SET.anim));
+  $("optLabels").setAttribute("aria-checked", String(SET.labels));
+  $("optVoice").setAttribute("aria-checked", String(SET.voice));
+  $("optAuto").setAttribute("aria-checked", String(SET.auto));
+}
+[["optAnim", "anim"], ["optLabels", "labels"], ["optVoice", "voice"], ["optAuto", "auto"]].forEach(function (p) {
+  $(p[0]).addEventListener("click", function () {
+    SET[p[1]] = !SET[p[1]];
+    if (p[1] === "auto") setAuto(SET.auto);
+    if (p[1] === "voice" && !SET.voice) try { speechSynthesis.cancel(); } catch (e) {}
+    applySettings();
+  });
+});
+
+/* ============================================================
    L'ÉQUIPE : 20 agents
    ============================================================ */
-var GROUPS = [
-  { id: "cmd", name: "Commande" }, { id: "day", name: "Au quotidien" }, { id: "make", name: "Création" },
-  { id: "cash", name: "Argent et trading" }, { id: "guard", name: "Gardiens" }
-];
+var GROUPS = [{ id: "cmd", name: "Commande" }, { id: "day", name: "Au quotidien" }, { id: "make", name: "Création" }, { id: "cash", name: "Argent et trading" }, { id: "guard", name: "Gardiens" }];
 var AGENTS = [
-  { id: "CARO", r: "Chef d'orchestre", g: "cmd", gx: 11, gy: 11, skin: "#d9a27f", d: "Reçoit ta demande, choisit l'agent qui la prend et te rapporte le résultat. Tu parles juste à lui.", t: ["Coordination", "Les 20 agents"], idle: "Répartit la charge" },
-  { id: "VOX", r: "Voix québécoise", g: "cmd", gx: 8, gy: 12, skin: "#eec3a3", hair: 1, d: "Écoute « Hey Caro » et comprend ton parler, de Charlevoix à Blanc-Sablon.", t: ["Voix sur l'appareil", "Lexique québécois"], idle: "Écoute « Hey Caro »" },
-  { id: "FRIDAY", r: "Courriels", g: "day", gx: 1, gy: 4, skin: "#c98f78", hair: 1, d: "Lit, trie et prépare tes réponses Gmail. Rien ne part sans ton OK.", t: ["Gmail"], idle: "Relève la boîte" },
-  { id: "KAREN", r: "Agenda", g: "day", gx: 1, gy: 7, skin: "#f0c8a8", hair: 1, d: "Garde ton calendrier en ordre et trouve les trous dans ta semaine.", t: ["Google Agenda", "Rappels"], idle: "Vérifie les rappels" },
-  { id: "ORACLE", r: "Recherche web", g: "day", gx: 1, gy: 10, skin: "#8d5a44", visor: 1, d: "Fouille le web, compare les sources et te résume ça clairement.", t: ["Recherche web", "TinyFish"], idle: "Indexe des sources" },
-  { id: "EDITH", r: "Veille OSINT", g: "day", gx: 1, gy: 13, skin: "#d9a27f", visor: 1, d: "Surveille les données publiques : satellites, avions, bateaux.", t: ["Données publiques"], idle: "Balaye la carte" },
-  { id: "FORGE", r: "Code", g: "make", gx: 4, gy: 1, skin: "#b8795d", visor: 1, d: "Écrit et répare le code de l'équipe : le bot Telegram, le script TradingView, cette app.", t: ["Claude Code", "GitHub"], idle: "Compile" },
-  { id: "PRISM", r: "Design", g: "make", gx: 7, gy: 1, skin: "#e0b08c", d: "Dessine les interfaces et s'assure que tout soit beau et clair.", t: ["Interfaces"], idle: "Ajuste des pixels" },
-  { id: "VAULT", r: "Fichiers et wallet", g: "make", gx: 10, gy: 1, skin: "#6b4636", visor: 1, d: "Range ton Drive et garde ton wallet. Rien ne sort sans ton OK.", t: ["Google Drive", "Phantom"], idle: "Range le Drive" },
-  { id: "CORTEX", r: "Mémoire d'équipe", g: "make", gx: 13, gy: 1, skin: "#cfa58f", d: "Garde ce que l'équipe apprend, tes préférences et ton lexique.", t: ["Mémoire", "Lexique"], idle: "Consolide la mémoire" },
-  { id: "LEDGER", r: "Budget et graphiques", g: "cash", gx: 15, gy: 5, skin: "#d9a27f", d: "Suit ton budget et lit les graphiques : EMA, RSI, MACD. Lecture seulement, jamais d'ordre.", t: ["TradingView", "CoinGecko"], idle: "Lit les chandeliers" },
-  { id: "RADAR", r: "Tendances", g: "cash", gx: 15, gy: 8, skin: "#c98f78", visor: 1, d: "Repère les nouveaux tokens et les tendances, sur pump.fun et ailleurs.", t: ["pump.fun", "Etherscan"], idle: "Scanne les nouveaux tokens" },
-  { id: "PULSE", r: "Risque", g: "cash", gx: 12, gy: 7, skin: "#eec3a3", d: "Garde ton risque bas : perte du jour, exposition, interrupteur d'urgence.", t: ["Moteur de risque"], idle: "Recalcule l'exposition" },
-  { id: "NEXUS", r: "Connexions", g: "cash", gx: 4, gy: 12, skin: "#b8795d", d: "Relie TradingView, Telegram, 3Commas et ton wallet.", t: ["TradingView", "Telegram", "3Commas"], idle: "Vérifie les connexions" },
-  { id: "ORBIT", r: "Minage", g: "cash", gx: 5, gy: 9, skin: "#8d5a44", visor: 1, d: "Surveille tes cartes de minage : température, taux de hachage, pannes.", t: ["GPU", "Hashrate"], idle: "Lit les températures" },
-  { id: "ECHO", r: "Contenu", g: "cash", gx: 15, gy: 11, skin: "#f0c8a8", hair: 1, d: "Écrit tes publications dans ton ton. C'est toi qui valides avant de publier.", t: ["Rédaction", "Réseaux sociaux"], idle: "Écrit un brouillon" },
-  { id: "AEGIS", r: "Cybersécurité", g: "guard", gx: 3, gy: 15, skin: "#a86b50", visor: 1, d: "Vérifie les accès, repère les pièges et garde tes clés API hors de portée.", t: ["Audit d'accès", "Alertes"], idle: "Audit des accès" },
-  { id: "SENTINEL", r: "Garde des données", g: "guard", gx: 6, gy: 15, skin: "#c98f78", visor: 1, d: "Bloque toute donnée qui voudrait sortir sans ta permission.", t: ["Traitement local", "Filtre de sortie"], idle: "Filtre la sortie" },
-  { id: "SENTRY", r: "Anti-arnaque", g: "guard", gx: 9, gy: 15, skin: "#d9a27f", visor: 1, d: "Bloque les rugs et les signaux douteux : pas de stop-loss, gain/risque trop bas, options binaires.", t: ["Signaux", "Liquidité"], idle: "Vérifie les contrats" },
-  { id: "CIPHER", r: "Coffre-fort", g: "guard", gx: 12, gy: 15, skin: "#e0b08c", visor: 1, d: "Chiffre tout ce que l'app garde sur l'iPhone : mémoire, lexique et réglages.", t: ["Chiffrement", "Trousseau iOS"], idle: "Chiffre la mémoire" }
+  { id: "CARO", r: "La tête · chef d'orchestre", g: "cmd", gx: 11, gy: 11, skin: "#d9a27f", eyes: "dots", ant: "single", d: "La tête de l'équipe. Reçoit ta demande, choisit l'agent qui la prend, rassemble les réponses de tout le monde et décide.", t: ["Coordination", "Les 20 agents"], idle: "Répartit la charge" },
+  { id: "VOX", r: "Voix québécoise", g: "cmd", gx: 8, gy: 12, skin: "#eec3a3", hair: 1, eyes: "dots", ant: "v", d: "Comprend ton parler, de Charlevoix à Blanc-Sablon, et transforme ta voix en tâches pour CARO.", t: ["Voix", "Lexique québécois"], idle: "Écoute « Hey Caro »" },
+  { id: "FRIDAY", r: "Courriels", g: "day", gx: 1, gy: 4, skin: "#c98f78", hair: 1, eyes: "dots", ant: "hook", d: "Lit, trie et prépare tes réponses Gmail. Rien ne part sans ton OK.", t: ["Gmail"], idle: "Relève la boîte" },
+  { id: "KAREN", r: "Agenda", g: "day", gx: 1, gy: 7, skin: "#f0c8a8", hair: 1, eyes: "dots", ant: "clock", d: "Garde ton calendrier en ordre et trouve les trous dans ta semaine.", t: ["Google Agenda", "Rappels"], idle: "Vérifie les rappels" },
+  { id: "ORACLE", r: "Recherche web", g: "day", gx: 1, gy: 10, skin: "#8d5a44", visor: 1, eyes: "beam", ant: "lens", d: "Fouille le web, compare les sources et te résume ça clairement.", t: ["Recherche web", "TinyFish"], idle: "Indexe des sources" },
+  { id: "EDITH", r: "Veille OSINT", g: "day", gx: 1, gy: 13, skin: "#d9a27f", visor: 1, eyes: "nv", ant: "reddot", d: "Surveille les données publiques : satellites, avions, bateaux.", t: ["Données publiques"], idle: "Balaye la carte" },
+  { id: "FORGE", r: "Code", g: "make", gx: 4, gy: 1, skin: "#b8795d", visor: 1, eyes: "visor", ant: "hammer", d: "Écrit et répare le code : le bot Telegram, le script TradingView, cette app.", t: ["Claude Code", "GitHub"], idle: "Compile" },
+  { id: "PRISM", r: "Design", g: "make", gx: 7, gy: 1, skin: "#e0b08c", eyes: "dots", ant: "prism", d: "Dessine les interfaces et s'assure que tout soit beau et clair.", t: ["Interfaces"], idle: "Ajuste des pixels" },
+  { id: "VAULT", r: "Fichiers et wallet", g: "make", gx: 10, gy: 1, skin: "#6b4636", visor: 1, eyes: "visor", ant: "lock", d: "Range ton Drive et garde ton wallet. Rien ne sort sans ton OK.", t: ["Google Drive", "Phantom"], idle: "Range le Drive" },
+  { id: "CORTEX", r: "Mémoire d'équipe", g: "make", gx: 13, gy: 1, skin: "#cfa58f", eyes: "dots", ant: "net", d: "Garde ce que l'équipe apprend, tes préférences et ton lexique.", t: ["Mémoire", "Lexique"], idle: "Consolide la mémoire" },
+  { id: "LEDGER", r: "Budget et graphiques", g: "cash", gx: 15, gy: 5, skin: "#d9a27f", eyes: "dots", ant: "dollar", d: "Suit ton budget et lit les graphiques : EMA, RSI, MACD. Lecture seulement, jamais d'ordre.", t: ["Gemini", "TradingView"], idle: "Lit les chandeliers" },
+  { id: "RADAR", r: "Tendances", g: "cash", gx: 15, gy: 8, skin: "#c98f78", visor: 1, eyes: "nv", ant: "radar", d: "Repère les nouveaux tokens et les tendances, sur pump.fun et ailleurs.", t: ["pump.fun", "Etherscan"], idle: "Scanne les nouveaux tokens" },
+  { id: "PULSE", r: "Risque", g: "cash", gx: 12, gy: 7, skin: "#eec3a3", eyes: "dots", ant: "rings", d: "Garde ton risque bas : perte du jour, exposition, interrupteur d'urgence.", t: ["Moteur de risque"], idle: "Recalcule l'exposition" },
+  { id: "NEXUS", r: "Connexions", g: "cash", gx: 4, gy: 12, skin: "#b8795d", eyes: "visor", ant: "net", d: "Relie TradingView, Telegram, 3Commas, Gemini et ton wallet.", t: ["TradingView", "Telegram", "3Commas"], idle: "Vérifie les connexions" },
+  { id: "ORBIT", r: "Minage", g: "cash", gx: 5, gy: 9, skin: "#8d5a44", visor: 1, eyes: "visor", ant: "rings", d: "Surveille tes cartes de minage : température, taux de hachage, pannes.", t: ["GPU", "Hashrate"], idle: "Lit les températures" },
+  { id: "ECHO", r: "Contenu", g: "cash", gx: 15, gy: 11, skin: "#f0c8a8", hair: 1, eyes: "dots", ant: "rings", d: "Écrit tes publications dans ton ton. C'est toi qui valides avant de publier.", t: ["Rédaction", "Réseaux sociaux"], idle: "Écrit un brouillon" },
+  { id: "AEGIS", r: "Cybersécurité", g: "guard", gx: 3, gy: 15, skin: "#a86b50", visor: 1, eyes: "visor", ant: "shield", d: "Vérifie les accès, repère les pièges et garde tes clés API hors de portée.", t: ["Audit d'accès", "Alertes"], idle: "Audit des accès" },
+  { id: "SENTINEL", r: "Garde des données", g: "guard", gx: 6, gy: 15, skin: "#c98f78", visor: 1, eyes: "nv", ant: "radar", d: "Bloque toute donnée qui voudrait sortir sans ta permission.", t: ["Traitement local", "Filtre de sortie"], idle: "Filtre la sortie" },
+  { id: "SENTRY", r: "Anti-arnaque", g: "guard", gx: 9, gy: 15, skin: "#d9a27f", visor: 1, eyes: "visor", ant: "shield", d: "Bloque les rugs et les signaux douteux : pas de stop-loss, gain/risque trop bas, options binaires.", t: ["Signaux", "Liquidité"], idle: "Vérifie les contrats" },
+  { id: "CIPHER", r: "Coffre-fort", g: "guard", gx: 12, gy: 15, skin: "#e0b08c", visor: 1, eyes: "visor", ant: "key", d: "Chiffre tout ce que l'app garde sur l'iPhone : mémoire, lexique et réglages.", t: ["Chiffrement", "Trousseau iOS"], idle: "Chiffre la mémoire" }
 ];
 var USER = { id: "TOI", r: "Ton iPhone", g: "user", gx: 16.3, gy: 16.3, d: "", t: [] };
 var AG = {};
-AGENTS.concat([USER]).forEach(function (a) { a.talkUntil = 0; a.workUntil = 0; a.alertUntil = 0; a.task = ""; a.sent = 0; AG[a.id] = a; });
+AGENTS.concat([USER]).forEach(function (a, i) { a.i = i; a.talkUntil = 0; a.workUntil = 0; a.alertUntil = 0; a.task = ""; a.sent = 0; AG[a.id] = a; });
+function helm(a) {
+  if (a.id === "TOI") return GLOW;
+  switch (SET.outfit) {
+    case "or": return "#ffd34d";
+    case "furtif": return "#3a4766";
+    case "arc": return "hsl(" + Math.round(a.i * 360 / AGENTS.length) + ",90%,62%)";
+    case "accent": return GLOW;
+    default: return COL[a.g];
+  }
+}
 
 /* ============================================================
    MISSIONS
@@ -609,17 +831,17 @@ var MISSIONS = [
     S("VOX", "CARO", "Demande : vérifier un signal SOL/USDT"),
     S("CARO", "SENTRY", "SOL/USDT BUY 176,20 TP 182 SL 172"),
     { par: [S("SENTRY", "LEDGER", "Le graphique confirme?"), S("SENTRY", "PULSE", "Stop-loss présent, gain/risque 1,4")] },
-    S("LEDGER", "SENTRY", "Prix au-dessus de l'EMA 200, RSI 62 : score 4 sur 5"),
+    S("LEDGER", "SENTRY", "Prix au-dessus de l'EMA 200 : score 4 sur 5"),
     S("PULSE", "SENTRY", "Gain/risque sous 1,5 : trop juste", { alert: 1 }),
     S("SENTRY", "CARO", "Mis de côté : gain/risque trop bas"),
-    S("CARO", "TOI", "Signal mis de côté : le gain ne vaut pas le risque. Tu veux le voir?", { ask: 1 })
+    S("CARO", "TOI", "Signal mis de côté : le gain ne vaut pas le risque.", { ask: 1 })
   ]},
-  { id: "crypto", label: "Surveille le Bitcoin", steps: [
-    S("TOI", "VOX", "« Caro, ça fait quoi le Bitcoin à matin? »"),
+  { id: "crypto", label: "Lis le marché", steps: [
+    S("TOI", "VOX", "« Caro, ça fait quoi le marché à matin? »"),
     S("VOX", "CARO", "Demande : état du marché crypto"),
-    { par: [S("CARO", "ORACLE", "Nouvelles du marché des dernières 24 h"), S("CARO", "LEDGER", "Lis le graphique et le prix")] },
+    { par: [S("CARO", "ORACLE", "Nouvelles des dernières 24 h"), S("CARO", "LEDGER", "Lis les graphiques et les indicateurs")] },
     S("ORACLE", "LEDGER", "Sources résumées, aucune rumeur retenue"),
-    S("LEDGER", "PULSE", "Ton exposition BTC est-tu correcte?"),
+    S("LEDGER", "PULSE", "L'exposition est-tu correcte?"),
     S("PULSE", "LEDGER", "Exposition sous la limite de 20 %"),
     S("LEDGER", "CARO", "Résumé prêt. Lecture seulement, aucun ordre"),
     S("CARO", "TOI", "Résumé du marché prêt. Aucune transaction faite.", { ask: 1 })
@@ -640,7 +862,16 @@ var MISSIONS = [
     S("NEXUS", "PULSE", "3 bots actifs, 2 trades ouverts"),
     S("PULSE", "NEXUS", "Perte du jour sous la limite de 2 %"),
     S("NEXUS", "CARO", "Tout roule. Un trade SOL à -1,5 %"),
-    S("CARO", "TOI", "3 bots roulent, rien d'anormal. Tu veux le détail?", { ask: 1 })
+    S("CARO", "TOI", "Les bots roulent, rien d'anormal.", { ask: 1 })
+  ]},
+  { id: "minage", label: "Mes cartes de minage", steps: [
+    S("TOI", "VOX", "« Caro, mes cartes roulent-tu? »"),
+    S("VOX", "CARO", "Demande : état du minage"),
+    S("CARO", "ORBIT", "Températures et taux de hachage"),
+    S("ORBIT", "PULSE", "Carte 3 à 83 °C, un peu chaude", { alert: 1 }),
+    S("PULSE", "ORBIT", "Baisse sa puissance de 10 %"),
+    S("ORBIT", "CARO", "Toutes les cartes roulent, la 3 refroidit"),
+    S("CARO", "TOI", "Le minage roule. J'ai calmé la carte 3.", { ask: 1 })
   ]},
   { id: "semaine", label: "Prépare ma semaine", steps: [
     S("TOI", "VOX", "« Hey Caro, prépare ma semaine »"),
@@ -651,25 +882,6 @@ var MISSIONS = [
     S("CORTEX", "KAREN", "Confirmé : matins libres jusqu'à 9 h"),
     S("KAREN", "CARO", "Semaine montée : 4 blocs libres, 3 rendez-vous"),
     S("CARO", "TOI", "Ta semaine est prête. Tu valides?", { ask: 1 })
-  ]},
-  { id: "mail", label: "Trie mes courriels", steps: [
-    S("TOI", "VOX", "« Caro, fais le ménage dans mes courriels »"),
-    S("VOX", "CARO", "Demande : trier la boîte de réception"),
-    S("CARO", "FRIDAY", "Trie la boîte, prépare les réponses"),
-    S("FRIDAY", "AEGIS", "Ce courriel de « ta banque » a l'air louche", { alert: 1 }),
-    S("AEGIS", "FRIDAY", "Hameçonnage confirmé, je le mets de côté", { alert: 1 }),
-    S("FRIDAY", "LEDGER", "Talon de paie reçu"),
-    S("FRIDAY", "CARO", "38 triés, 4 réponses en brouillon"),
-    S("CARO", "TOI", "4 brouillons attendent ton OK. Rien n'est parti.", { ask: 1 })
-  ]},
-  { id: "minage", label: "Mes cartes de minage", steps: [
-    S("TOI", "VOX", "« Caro, mes cartes roulent-tu? »"),
-    S("VOX", "CARO", "Demande : état du minage"),
-    S("CARO", "ORBIT", "Températures et taux de hachage"),
-    S("ORBIT", "PULSE", "Carte 3 à 83 °C, un peu chaude", { alert: 1 }),
-    S("PULSE", "ORBIT", "Baisse sa puissance de 10 %"),
-    S("ORBIT", "CARO", "Toutes les cartes roulent, la 3 refroidit"),
-    S("CARO", "TOI", "Le minage roule. J'ai calmé la carte 3.", { ask: 1 })
   ]},
   { id: "secu", label: "Alerte sécurité", steps: [
     S("SENTINEL", "AEGIS", "Une app essaie d'envoyer ton lexique dehors", { alert: 1 }),
@@ -687,43 +899,18 @@ var MISSIONS = [
     S("ECHO", "CORTEX", "C'est quoi son ton?"),
     S("CORTEX", "ECHO", "Phrases courtes, un peu de joual"),
     S("ECHO", "PRISM", "Il me faut un visuel"),
-    S("PRISM", "VAULT", "Le logo Black Box est dans le Drive?"),
-    S("VAULT", "PRISM", "Trouvé : logo-blackbox.svg"),
     S("PRISM", "ECHO", "Visuel prêt"),
     S("ECHO", "CARO", "Brouillon et visuel prêts"),
     S("CARO", "TOI", "Ton post est prêt. Tu publies?", { ask: 1 })
   ]}
 ];
-var KEYS = [
-  [/signal|pocket|setup|entr[ée]e/i, "signal"],
-  [/bitcoin|btc|eth|march[ée]|prix|graph|rsi|ema|macd/i, "crypto"],
-  [/token|pump|memecoin|rug|nouveau coin/i, "token"],
-  [/bot|3c|3commas|trade|pnl|profit/i, "bots"],
-  [/semaine|agenda|horaire|calendrier|rendez/i, "semaine"],
-  [/courriel|mail|gmail|bo[iî]te/i, "mail"],
-  [/min(age|eur|e)|gpu|carte|hash/i, "minage"],
-  [/s[ée]curit|pirat|hack|virus|fuite/i, "secu"],
-  [/post|publi|r[ée]seau|instagram|tiktok/i, "post"]
-];
-function genericMission(text) {
-  return { id: "libre", label: text.length > 40 ? text.slice(0, 40) + "…" : text, steps: [
-    S("TOI", "VOX", "« " + text + " »"),
-    S("VOX", "CARO", "Demande reçue, je te la passe"),
-    { par: [S("CARO", "ORACLE", "Cherche de l'info là-dessus"), S("CARO", "CORTEX", "On a déjà parlé de ça?")] },
-    S("CORTEX", "CARO", "Rien en mémoire, je le note"),
-    S("ORACLE", "CARO", "3 sources trouvées et résumées"),
-    S("CARO", "SENTINEL", "Vérifie la réponse avant l'envoi"),
-    S("SENTINEL", "CARO", "Correct"),
-    S("CARO", "TOI", "Réponse prête (démo : aucune vraie recherche faite).", { ask: 1 })
-  ]};
-}
+var MISSION_IDS = MISSIONS.map(function (m) { return m.id; });
 
 /* ============================================================
    SCÈNE ISOMÉTRIQUE
    ============================================================ */
 var LW = 360, LH = 236, SC = 3, OX = 180, OY = 56, N = 18;
-var cv = $("scene");
-var ctx = cv.getContext("2d");
+var cv = $("scene"), ctx = cv.getContext("2d");
 function iso(gx, gy) { return [OX + (gx - gy) * 8, OY + (gx + gy) * 4]; }
 function feet(a) { var p = iso(a.gx + 0.5, a.gy + 0.5); return [Math.round(p[0]), Math.round(p[1])]; }
 function head(a) { var f = feet(a); return a.id === "TOI" ? [f[0], f[1] - 16] : [f[0], f[1] - 20]; }
@@ -750,15 +937,15 @@ var LC = [OX - EDGE, OY + N * 4], RC = [OX + EDGE, OY + N * 4], BC = [OX, OY + N
 var RACKS = [-52, -76];
 var STATIC = document.createElement("canvas");
 STATIC.width = LW * SC; STATIC.height = LH * SC;
-var CORE = { x: 8, w: 2 };
-var CC = iso(CORE.x + 1, CORE.x + 1);
-
+var CORE = { x: 8, w: 2 }, CC = iso(CORE.x + 1, CORE.x + 1), staticReady = false;
+function rgba(hex, a) { var n = parseInt(hex.slice(1), 16); return "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + a + ")"; }
 function buildStatic() {
   var c = STATIC.getContext("2d");
   c.setTransform(SC, 0, 0, SC, 0, 0);
-  c.fillStyle = "#06080d"; c.fillRect(0, 0, LW, LH);
+  var bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#06080d";
+  c.fillStyle = bg; c.fillRect(0, 0, LW, LH);
   var g = c.createRadialGradient(CC[0], CC[1], 4, CC[0], CC[1], 160);
-  g.addColorStop(0, "rgba(216,243,106,.10)"); g.addColorStop(1, "rgba(216,243,106,0)");
+  g.addColorStop(0, rgba(GLOW, 0.10)); g.addColorStop(1, rgba(GLOW, 0));
   c.fillStyle = g; c.fillRect(0, 0, LW, LH);
   poly(c, [LC, BC, [BC[0], BC[1] + 7], [LC[0], LC[1] + 7]], "#0d1320");
   poly(c, [BC, RC, [RC[0], RC[1] + 7], [BC[0], BC[1] + 7]], "#090e18");
@@ -775,7 +962,7 @@ function buildStatic() {
     for (var s = 0; s < 3; s++) { p = [p[0] + (rnd() - 0.5) * 10, p[1] + (rnd() - 0.3) * 4]; c.lineTo(p[0], p[1]); }
     c.stroke();
   }
-  c.strokeStyle = "rgba(216,243,106,.14)"; c.lineWidth = 0.6;
+  c.strokeStyle = rgba(GLOW, 0.14); c.lineWidth = 0.6;
   c.beginPath(); c.ellipse(CC[0], CC[1], 34, 17, 0, 0, Math.PI * 2); c.stroke();
   c.beginPath(); c.ellipse(CC[0], CC[1], 40, 20, 0, 0, Math.PI * 2); c.stroke();
   AGENTS.concat([USER]).forEach(function (a) {
@@ -783,7 +970,7 @@ function buildStatic() {
     c.strokeStyle = "#18223a"; c.lineWidth = 1.2;
     c.beginPath(); c.moveTo(f[0] + 6, f[1] - 1);
     c.quadraticCurveTo((f[0] + CC[0]) / 2, (f[1] + CC[1]) / 2 + 6, CC[0], CC[1] + 2); c.stroke();
-    c.strokeStyle = COL[a.g]; c.globalAlpha = 0.12; c.lineWidth = 0.5; c.stroke(); c.globalAlpha = 1;
+    c.strokeStyle = a.id === "TOI" ? GLOW : COL[a.g]; c.globalAlpha = 0.12; c.lineWidth = 0.5; c.stroke(); c.globalAlpha = 1;
   });
   poly(c, [[OX, OY], LC, [LC[0], LC[1] - WALL_H], [OX, OY - WALL_H]], "#131b2b");
   poly(c, [[OX, OY], RC, [RC[0], RC[1] - WALL_H], [OX, OY - WALL_H]], "#18213a");
@@ -806,6 +993,7 @@ function buildStatic() {
   c.beginPath(); c.moveTo(OX, OY - WALL_H); c.lineTo(OX, OY); c.stroke();
   c.strokeStyle = "rgba(79,209,255,.35)"; c.lineWidth = 0.6;
   c.beginPath(); c.moveTo(LC[0], LC[1]); c.lineTo(OX, OY); c.lineTo(RC[0], RC[1]); c.stroke();
+  staticReady = true;
 }
 function bricks(c, u0, u1) {
   c.strokeStyle = "rgba(5,8,14,.55)"; c.lineWidth = 0.4;
@@ -814,13 +1002,12 @@ function bricks(c, u0, u1) {
     for (var u = u0 + (row % 2 ? 6 : 0); u < u1; u += 12) { c.beginPath(); c.moveTo(u, v); c.lineTo(u, v - 5); c.stroke(); }
   }
 }
-
 function wallFx(t) {
-  var now = performance.now();
+  var now = performance.now(), still = STILL();
   leftWall(ctx);
   RACKS.forEach(function (u, ri) {
     for (var i = 0; i < 7; i++) {
-      var on = hash(ri * 10 + i, Math.floor(t * (RM ? 0.5 : 3) + i)) > 0.4;
+      var on = hash(ri * 10 + i, Math.floor(t * (still ? 0.5 : 3) + i)) > 0.4;
       ctx.fillStyle = on ? (i % 3 ? "#3df5a8" : "#4fd1ff") : "#16202f";
       ctx.fillRect(u + 7, -32 + i * 4, 1, 1);
       ctx.fillStyle = on && i % 2 ? "#ffb84d" : "#16202f";
@@ -832,7 +1019,7 @@ function wallFx(t) {
   for (var gv = -38; gv < -18; gv += 5) ctx.fillRect(-127, gv, 34, 0.4);
   var edithOn = now < AG.EDITH.workUntil;
   for (var p = 0; p < 6; p++) {
-    var pu = -127 + ((hash(p, 1) * 34 + t * (2 + p) * (RM ? 0.2 : 1)) % 34);
+    var pu = -127 + ((hash(p, 1) * 34 + t * (2 + p) * (still ? 0.2 : 1)) % 34);
     ctx.fillStyle = edithOn ? "#ffffff" : "#3df5a8";
     ctx.fillRect(pu, -38 + hash(p, 2) * 18, 1, 1);
   }
@@ -841,41 +1028,41 @@ function wallFx(t) {
   var ledgerOn = now < AG.LEDGER.workUntil;
   ctx.strokeStyle = ledgerOn ? "#ffd27a" : "#ffb84d"; ctx.lineWidth = 0.7; ctx.globalAlpha = ledgerOn ? 1 : 0.7;
   ctx.beginPath();
+  var closes = mini.length ? mini : null;
   for (var x = 0; x <= 34; x++) {
-    var k = x + t * (RM ? 1 : 4);
-    var y = -30 + Math.sin(k * 0.35) * 3 + Math.sin(k * 0.13 + 1) * 4 + Math.sin(k * 0.9) * 0.8;
+    var y;
+    if (closes) { var idx = Math.floor(x / 34 * (closes.length - 1)); y = -38 + 16 * (1 - closes[idx]); }
+    else { var k = x + t * (still ? 1 : 4); y = -30 + Math.sin(k * 0.35) * 3 + Math.sin(k * 0.13 + 1) * 4 + Math.sin(k * 0.9) * 0.8; }
     if (x === 0) ctx.moveTo(37 + x, y); else ctx.lineTo(37 + x, y);
   }
   ctx.stroke(); ctx.globalAlpha = 1;
   ctx.fillStyle = "rgba(255,184,77,.25)"; ctx.fillRect(37, -23, 34, 0.4);
-  var flick = !RM && hash(3, Math.floor(t * 8)) < 0.04;
+  var flick = !still && hash(3, Math.floor(t * 8)) < 0.04;
   ctx.font = "7px Silkscreen, 'Courier New', monospace";
   ctx.textBaseline = "alphabetic";
-  ctx.shadowColor = GLOW; ctx.shadowBlur = flick ? 0 : 14;
+  ctx.shadowColor = killOn ? "#ff4d6d" : GLOW; ctx.shadowBlur = flick ? 0 : 14;
   ctx.fillStyle = flick ? "#3a4416" : (killOn ? "#ff4d6d" : GLOW);
   ctx.fillText("BLACK BOX", 92, -26);
   ctx.shadowBlur = 0;
   ctx.font = "4px Silkscreen, 'Courier New', monospace";
   ctx.fillStyle = killOn ? "rgba(255,77,109,.85)" : "rgba(79,209,255,.75)";
-  ctx.fillText(killOn ? "ARRÊT D'URGENCE" : "CARO · QG", 93, -19);
+  ctx.fillText(killOn ? "ARRÊT D'URGENCE" : (chartSym ? chartSym + " · " + chartTf : "CARO · QG"), 93, -19);
   ctx.setTransform(SC, 0, 0, SC, 0, 0);
 }
-
 var MUSH = [[7.3, 8.3, 3], [7.2, 9.4, 2], [7.6, 10.4, 3], [10.5, 7.4, 2], [9.3, 7.2, 3], [0.5, 17.2, 3], [1.3, 17.4, 2], [0.4, 16.3, 2], [17.2, 0.4, 3], [16.4, 0.5, 2], [17.3, 1.4, 2], [13.6, 13.4, 2], [6.4, 13.2, 2]];
 function drawMush(m, t) {
   var p = iso(m[0], m[1]), x = Math.round(p[0]), y = Math.round(p[1]), s = m[2];
-  var pulse = RM ? 0.8 : 0.65 + 0.35 * Math.sin(t * 1.6 + m[0] * 2);
+  var pulse = STILL() ? 0.8 : 0.65 + 0.35 * Math.sin(t * 1.6 + m[0] * 2);
   ctx.save(); ctx.globalCompositeOperation = "lighter";
   var g = ctx.createRadialGradient(x, y - s, 0, x, y - s, 7 + s * 2);
-  g.addColorStop(0, "rgba(216,243,106," + (0.28 * pulse) + ")"); g.addColorStop(1, "rgba(216,243,106,0)");
+  g.addColorStop(0, rgba(GLOW, 0.28 * pulse)); g.addColorStop(1, rgba(GLOW, 0));
   ctx.fillStyle = g; ctx.fillRect(x - 12, y - 14, 24, 20);
   ctx.restore();
   ctx.fillStyle = "#b9b48a"; ctx.fillRect(x, y - s - 1, 1, s + 1);
   ctx.fillStyle = "#e9f7a0"; ctx.fillRect(x - s + 1, y - s - 2, s * 2 - 1, 1);
   ctx.fillRect(x - s + 2, y - s - 3, s * 2 - 3, 1);
-  ctx.fillStyle = "#c9de55"; ctx.fillRect(x - s + 1, y - s - 1, s * 2 - 1, 1);
+  ctx.fillStyle = GLOW; ctx.fillRect(x - s + 1, y - s - 1, s * 2 - 1, 1);
 }
-
 var coreHit = 0;
 function drawCore(now) {
   var t = now / 1000;
@@ -887,7 +1074,7 @@ function drawCore(now) {
   ctx.fillStyle = "#5b6040"; ctx.fillRect(1, -24, 14, 1); ctx.fillRect(1, -5, 14, 1);
   ctx.setTransform(SC, -SC * 0.5, 0, SC, SC * rf[0], SC * rf[1]);
   for (var i = 0; i < 5; i++) {
-    var on = (Math.floor(t * (RM ? 1 : 4)) + i) % 5 < 2 || now - coreHit < 600;
+    var on = (Math.floor(t * (STILL() ? 1 : 4)) + i) % 5 < 2 || now - coreHit < 600;
     ctx.fillStyle = killOn ? "#ff4d6d" : (on ? GLOW : "#2a2e1b");
     ctx.fillRect(2 + i * 3, -20, 1.5, 1.5);
   }
@@ -898,17 +1085,17 @@ function drawCore(now) {
   ctx.strokeStyle = GLOW; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.8;
   ctx.beginPath(); ctx.ellipse(CC[0], CC[1] - 26, 5, 2.5, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
 }
-
 var FREK = [[-5, 4], [4, 6], [-2, 15], [6, 13], [0, 2], [-7, 11]];
 function drawHolo(now) {
-  var t = now / 1000, hot = now - coreHit < 1600;
-  var base = hot ? 1 : (RM ? 0.7 : 0.6 + 0.1 * Math.sin(t * 2));
+  var t = now / 1000, hot = now - coreHit < 1600 || voiceBusy;
+  var still = STILL();
+  var base = hot ? 1 : (still ? 0.7 : 0.6 + 0.1 * Math.sin(t * 2));
   var cx = CC[0], emit = CC[1] - 26, H = 26, W = 10, top = emit - 12 - H;
   var tint = killOn ? "#ff4d6d" : GLOW;
   ctx.save(); ctx.globalCompositeOperation = "lighter";
-  poly(ctx, [[cx - 3, emit], [cx + 3, emit], [cx + 11, top + H], [cx - 11, top + H]], killOn ? "rgba(255,77,109,.12)" : "rgba(216,243,106," + (hot ? 0.16 : 0.09) + ")");
+  poly(ctx, [[cx - 3, emit], [cx + 3, emit], [cx + 11, top + H], [cx - 11, top + H]], rgba(tint, hot ? 0.16 : 0.09));
   var g = ctx.createRadialGradient(cx, top + 13, 2, cx, top + 13, 30);
-  g.addColorStop(0, killOn ? "rgba(255,77,109,.2)" : "rgba(216,243,106," + (0.22 * base) + ")"); g.addColorStop(1, "rgba(216,243,106,0)");
+  g.addColorStop(0, rgba(tint, 0.22 * base)); g.addColorStop(1, rgba(tint, 0));
   ctx.fillStyle = g; ctx.fillRect(cx - 32, top - 18, 64, 62);
   ctx.fillStyle = tint;
   for (var r = 0; r < H; r++) {
@@ -916,26 +1103,22 @@ function drawHolo(now) {
     var hw = W * Math.sqrt(Math.max(0, 1 - yy * yy));
     if (r > H * 0.55) hw *= 1 - (r - H * 0.55) / H * 0.6;
     hw = Math.round(hw);
-    var glitch = (!RM && hash(r, Math.floor(t * 12)) < (hot ? 0.04 : 0.015)) ? (hash(r, 9) > 0.5 ? 2 : -2) : 0;
+    var glitch = (!still && hash(r, Math.floor(t * 12)) < (hot ? 0.04 : 0.015)) ? (hash(r, 9) > 0.5 ? 2 : -2) : 0;
     ctx.globalAlpha = base * (r % 2 ? 0.45 : 0.75);
     ctx.fillRect(cx - hw + glitch, top + r, hw * 2, 1);
   }
   ctx.restore();
-  var blink = !RM && (t % 4.3) < 0.13;
+  var blink = !still && (t % 4.3) < 0.13;
   ctx.fillStyle = "#3a4a14";
   ctx.fillRect(cx - 6, top + 10, 4, 2); ctx.fillRect(cx + 2, top + 10, 4, 2);
-  ctx.fillRect(cx - 3, top + 19, 6, 1);
+  var talking = voiceBusy && !still && Math.floor(now / 140) % 2;
+  ctx.fillRect(cx - 3, top + 19, 6, talking ? 2 : 1);
   if (!blink) { ctx.fillStyle = "#fffde0"; ctx.fillRect(cx - 5, top + 10, 2, 1); ctx.fillRect(cx + 3, top + 10, 2, 1); }
   ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = "#ffffc0";
   FREK.forEach(function (f, i) { ctx.globalAlpha = 0.4 + 0.4 * Math.sin(t * 2 + i); ctx.fillRect(cx + f[0], top + f[1], 1, 1); });
   ctx.restore();
 }
-
-function stateOf(a, now) {
-  if (now < a.talkUntil) return "talk";
-  if (now < a.workUntil) return "work";
-  return "idle";
-}
+function stateOf(a, now) { if (now < a.talkUntil) return "talk"; if (now < a.workUntil) return "work"; return "idle"; }
 function drawDesk(a, now) {
   var x0 = a.gx + 0.75, y0 = a.gy - 0.15, col = COL[a.g];
   box(ctx, x0, y0, 0.6, 0.6, 6, "#1d263b", "#151c2d", "#10172a", "#26324d");
@@ -945,7 +1128,7 @@ function drawDesk(a, now) {
   ctx.fillStyle = "#05070d"; ctx.fillRect(cx - 4, top - 8, 9, 7);
   ctx.fillStyle = col; ctx.globalAlpha = working ? 0.9 : 0.28; ctx.fillRect(cx - 3, top - 7, 7, 5); ctx.globalAlpha = 1;
   if (working) {
-    var off = Math.floor(now / (RM ? 600 : 120));
+    var off = Math.floor(now / (STILL() ? 600 : 120));
     ctx.fillStyle = "#05070d";
     for (var i = 0; i < 3; i++) ctx.fillRect(cx - 3, top - 7 + ((i * 2 + off) % 5), 2 + ((i * 3 + off) % 5), 1);
     ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = col; ctx.globalAlpha = 0.15;
@@ -953,29 +1136,28 @@ function drawDesk(a, now) {
   }
 }
 function drawAgent(a, now) {
-  var f = feet(a), x = f[0], y = f[1], col = COL[a.g], st = stateOf(a, now);
-  var bob = (!RM && st !== "idle") ? Math.floor(now / 160) % 2 : 0;
+  var f = feet(a), x = f[0], y = f[1], col = COL[a.g], hc = helm(a), st = stateOf(a, now), still = STILL();
+  var bob = (!still && st !== "idle") ? Math.floor(now / 160) % 2 : 0;
   ctx.fillStyle = "rgba(0,0,0,.5)"; ctx.fillRect(x - 4, y - 1, 8, 2);
   ctx.fillStyle = "#0a0f1a"; ctx.fillRect(x - 3, y - 4, 2, 4); ctx.fillRect(x + 1, y - 4, 2, 4);
   var by = y - 10 - bob;
   ctx.fillStyle = "#1a2236"; ctx.fillRect(x - 4, by, 8, 6);
   ctx.fillStyle = col; ctx.fillRect(x - 4, by, 8, 1); ctx.fillRect(x - 1, by + 1, 2, 4);
-  var tap = st === "work" && !RM ? Math.floor(now / 110) % 2 : 0;
+  var tap = st === "work" && !still ? Math.floor(now / 110) % 2 : 0;
   ctx.fillStyle = a.skin;
   ctx.fillRect(x - 5, by + 1 - tap, 1, 3); ctx.fillRect(x + 4, by + 1 - (1 - tap) * (st === "work" ? 1 : 0), 1, 3);
   var hy = y - 16 - bob;
   if (a.hair) { ctx.fillStyle = "#1a1230"; ctx.fillRect(x - 4, hy + 2, 1, 6); ctx.fillRect(x + 3, hy + 2, 1, 6); }
   ctx.fillStyle = a.skin; ctx.fillRect(x - 3, hy, 6, 6);
-  ctx.fillStyle = col; ctx.fillRect(x - 4, hy - 1, 8, 3); ctx.fillRect(x - 4, hy + 2, 1, 2); ctx.fillRect(x + 3, hy + 2, 1, 2);
-  if (a.visor) { ctx.fillStyle = "#05070d"; ctx.fillRect(x - 3, hy + 3, 6, 2); ctx.fillStyle = col; ctx.fillRect(x - 2, hy + 3, 4, 1); }
+  ctx.fillStyle = hc; ctx.fillRect(x - 4, hy - 1, 8, 3); ctx.fillRect(x - 4, hy + 2, 1, 2); ctx.fillRect(x + 3, hy + 2, 1, 2);
+  if (a.id === "CARO") { ctx.fillStyle = GLOW; ctx.fillRect(x - 3, hy - 3, 1, 2); ctx.fillRect(x + 2, hy - 3, 1, 2); ctx.fillRect(x - 1, hy - 4, 2, 2); }
+  if (a.visor) { ctx.fillStyle = "#05070d"; ctx.fillRect(x - 3, hy + 3, 6, 2); ctx.fillStyle = hc; ctx.fillRect(x - 2, hy + 3, 4, 1); }
   else { ctx.fillStyle = "#ffffff"; ctx.fillRect(x - 2, hy + 3, 1, 1); ctx.fillRect(x + 1, hy + 3, 1, 1); }
   ctx.fillStyle = "#2a1410"; ctx.fillRect(x - 1, hy + 5, 2, 1);
-  ctx.fillStyle = col; ctx.fillRect(x, hy - 4, 1, 3);
+  ctx.fillStyle = hc; ctx.fillRect(x, hy - 4, 1, 3);
   var blink = st !== "idle" && Math.floor(now / 200) % 2;
-  ctx.fillStyle = blink ? "#ffffff" : col; ctx.fillRect(x, hy - 5, 1, 1);
-  if (now < a.alertUntil && Math.floor(now / 250) % 2) {
-    ctx.fillStyle = COL.guard; ctx.fillRect(x + 5, hy - 6, 2, 4); ctx.fillRect(x + 5, hy - 1, 2, 1);
-  }
+  ctx.fillStyle = blink ? "#ffffff" : hc; ctx.fillRect(x, hy - 5, 1, 1);
+  if (now < a.alertUntil && Math.floor(now / 250) % 2) { ctx.fillStyle = COL.guard; ctx.fillRect(x + 5, hy - 6, 2, 4); ctx.fillRect(x + 5, hy - 1, 2, 1); }
 }
 function drawPhone(a, now) {
   var f = feet(a), x = f[0], y = f[1], st = stateOf(a, now);
@@ -986,10 +1168,9 @@ function drawPhone(a, now) {
   ctx.fillStyle = "#1a2410"; ctx.fillRect(x - 3, y - 16, 6, 11);
   ctx.fillStyle = GLOW;
   for (var i = 0; i < 5; i++) {
-    var h = st !== "idle" && !RM ? 1 + Math.floor(hash(i, Math.floor(now / 90)) * 6) : 1;
+    var h = (st !== "idle" || voiceBusy) && !STILL() ? 1 + Math.floor(hash(i, Math.floor(now / 90)) * 6) : 1;
     ctx.fillRect(x - 3 + i, y - 10 - Math.floor(h / 2), 1, h);
   }
-  ctx.fillStyle = "#05070d"; ctx.fillRect(x - 1, y - 18, 2, 1);
 }
 function drawRadar(now) {
   var f = feet(AG.SENTINEL);
@@ -1003,15 +1184,15 @@ function drawRadar(now) {
 var selected = "CARO";
 function drawSelect(now) {
   var a = AG[selected]; if (!a) return;
-  var f = feet(a), p = RM ? 0 : Math.sin(now / 200);
+  var f = feet(a), p = STILL() ? 0 : Math.sin(now / 200);
   ctx.strokeStyle = COL[a.g]; ctx.lineWidth = 0.7; ctx.globalAlpha = 0.8;
   ctx.beginPath(); ctx.ellipse(f[0], f[1], 8 + p, 4 + p / 2, 0, 0, Math.PI * 2); ctx.stroke();
   ctx.globalAlpha = 1;
 }
 function drawLabel(a, now) {
   var st = stateOf(a, now);
-  if (st === "idle" && a.id !== selected && a.id !== "TOI") return;
-  var hp = head(a), col = COL[a.g];
+  if (st === "idle" && a.id !== selected && a.id !== "TOI" && !SET.labels) return;
+  var hp = head(a), col = a.id === "TOI" ? GLOW : COL[a.g];
   ctx.font = "5px Silkscreen, 'Courier New', monospace";
   ctx.textBaseline = "alphabetic";
   var w = Math.ceil(ctx.measureText(a.id).width);
@@ -1020,7 +1201,7 @@ function drawLabel(a, now) {
   ctx.strokeStyle = col; ctx.lineWidth = 0.4; ctx.strokeRect(bx, byy, w + 4, 7);
   ctx.fillStyle = col; ctx.fillText(a.id, bx + 2, byy + 5.6);
   if (st !== "idle") {
-    var dots = RM ? 3 : 1 + Math.floor(now / 250) % 3, dx = bx + w + 6;
+    var dots = STILL() ? 3 : 1 + Math.floor(now / 250) % 3, dx = bx + w + 6;
     ctx.fillStyle = st === "talk" ? "#ffffff" : col;
     ctx.fillRect(dx, byy, 9, 7);
     ctx.fillStyle = "#06080d";
@@ -1034,18 +1215,16 @@ function drawPackets(now) {
   ctx.save(); ctx.globalCompositeOperation = "lighter";
   packets.forEach(function (p) {
     var u = (now - p.t0) / p.dur; if (u >= 1) { p.done = true; return; }
-    var A = head(p.a), B = head(p.b);
-    var dist = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    var A = head(p.a), B = head(p.b), dist = Math.hypot(B[0] - A[0], B[1] - A[1]);
     var M = [(A[0] + B[0]) / 2, Math.min(A[1], B[1]) - 14 - dist * 0.18];
-    var col = p.alert ? COL.guard : COL[p.a.g];
+    var col = p.alert ? COL.guard : (p.a.id === "TOI" ? GLOW : COL[p.a.g]);
     ctx.strokeStyle = col; ctx.globalAlpha = 0.2; ctx.lineWidth = 0.5;
     ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.quadraticCurveTo(M[0], M[1], B[0], B[1]); ctx.stroke();
     var e = ease(u);
     for (var k = 9; k >= 0; k--) {
       var uu = e - k * 0.022; if (uu < 0) continue;
       var pt = bez(A, M, B, uu);
-      ctx.globalAlpha = (1 - k / 10) * 0.9; ctx.fillStyle = col;
-      ctx.fillRect(pt[0] - 1, pt[1] - 1, 2, 2);
+      ctx.globalAlpha = (1 - k / 10) * 0.9; ctx.fillStyle = col; ctx.fillRect(pt[0] - 1, pt[1] - 1, 2, 2);
     }
     var h = bez(A, M, B, e);
     ctx.globalAlpha = 1; ctx.fillStyle = "#ffffff"; ctx.fillRect(h[0] - 1, h[1] - 1, 3, 3);
@@ -1053,18 +1232,16 @@ function drawPackets(now) {
   ctx.restore();
   packets = packets.filter(function (p) { return !p.done; });
 }
-var currentTab = "qg";
+var currentTab = "salle";
 function frame(now) {
   requestAnimationFrame(frame);
-  if (currentTab !== "qg") return;
+  if (currentTab !== "salle" || !staticReady) return;
   var t = now / 1000;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(STATIC, 0, 0);
   ctx.setTransform(SC, 0, 0, SC, 0, 0);
-  wallFx(t);
-  drawRadar(now);
-  drawSelect(now);
+  wallFx(t); drawRadar(now); drawSelect(now);
   var list = [];
   AGENTS.forEach(function (a) { list.push({ k: a.gx + a.gy + 1, f: function () { drawDesk(a, now); drawAgent(a, now); } }); });
   list.push({ k: USER.gx + USER.gy + 1, f: function () { drawPhone(USER, now); } });
@@ -1072,19 +1249,17 @@ function frame(now) {
   MUSH.forEach(function (m) { list.push({ k: m[0] + m[1], f: function () { drawMush(m, t); } }); });
   list.sort(function (a, b) { return a.k - b.k; });
   list.forEach(function (d) { d.f(); });
-  drawHolo(now);
-  drawPackets(now);
+  drawHolo(now); drawPackets(now);
   AGENTS.forEach(function (a) { drawLabel(a, now); });
   drawLabel(USER, now);
 }
 
 /* ============================================================
-   MOTEUR DES MISSIONS
+   MOTEUR DES MISSIONS ET JOURNAL
    ============================================================ */
 var FLY = 950, WORK = 1500;
-var token = null, current = null, auto = true, nMsg = 0, nDone = 0, autoIdx = 0;
+var token = null, current = null, nMsg = 0, nDone = 0, autoIdx = 0;
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-// Un message isolé entre deux agents (utilisé aussi par les onglets Trading et Wallet)
 function sendMsg(A, B, m, alert) {
   var now = performance.now();
   A.talkUntil = now + FLY; A.task = m; A.sent++; nMsg++;
@@ -1096,19 +1271,12 @@ function sendMsg(A, B, m, alert) {
 }
 function playStep(s, tok) {
   if (s.par) return Promise.all(s.par.map(function (x) { return playStep(x, tok); }));
-  var A = AG[s[0]], B = AG[s[1]], m = s[2], o = s[3];
   if (tok.cancel) return Promise.resolve();
-  var now = performance.now();
-  A.talkUntil = now + FLY; A.task = m; A.sent++; nMsg++;
-  if (o.alert) A.alertUntil = now + FLY + 1200;
-  addLog(A, B, m, o.alert);
-  packets.push({ a: A, b: B, t0: now, dur: FLY, alert: o.alert });
-  if (A.id === "CARO" || B.id === "CARO") coreHit = now + FLY;
+  var A = AG[s[0]], B = AG[s[1]], o = s[3];
+  sendMsg(A, B, s[2], o.alert);
   return sleep(FLY).then(function () {
     if (tok.cancel) return;
-    B.workUntil = performance.now() + WORK; B.task = m;
-    if (o.alert) B.alertUntil = performance.now() + WORK;
-    if (B.id === "TOI") showAsk(A, m, o.ask);
+    if (B.id === "TOI") showAsk(A, s[2], o.ask);
     return sleep(WORK * 0.65);
   });
 }
@@ -1124,7 +1292,7 @@ function runMission(m) {
       nDone++; current = null;
       addDone(Math.round((performance.now() - t0) / 1000));
       setHud("Mission terminée", 1); markMission(null);
-      if (auto) sleep(4200).then(function () { if (token === tok && auto) runMission(nextAuto()); });
+      if (SET.auto) sleep(4200).then(function () { if (token === tok && SET.auto && !voiceBusy) runMission(nextAuto()); });
       return;
     }
     setHud(m.label, i / m.steps.length);
@@ -1140,16 +1308,10 @@ setInterval(function () {
   var a = idle[Math.floor(Math.random() * idle.length)];
   a.workUntil = now + 1400 + Math.random() * 1400; a.task = a.idle;
 }, 1500);
-
 function pad(n) { return (n < 10 ? "0" : "") + n; }
 function hhmmss(d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); }
 function nameSpan(a) { var s = document.createElement("span"); s.textContent = a.id; s.className = "c-" + a.g; s.style.color = "var(--c)"; return s; }
-function pushLog(li) {
-  var log = $("log");
-  li.classList.add("new");
-  log.insertBefore(li, log.firstChild);
-  while (log.children.length > 60) log.removeChild(log.lastChild);
-}
+function pushLog(li) { var log = $("log"); li.classList.add("new"); log.insertBefore(li, log.firstChild); while (log.children.length > 60) log.removeChild(log.lastChild); }
 function addLog(A, B, m, alert) {
   var li = document.createElement("li");
   if (alert) li.className = "alert";
@@ -1165,29 +1327,23 @@ function addDone(sec) {
   li.appendChild(tm); li.appendChild(document.createTextNode("✓ Mission réglée en " + sec + " s par l'équipe")); pushLog(li);
 }
 function setHud(name, p) { $("hudName").textContent = name; $("hudBar").style.width = Math.round(p * 100) + "%"; }
-
 var askTimer = null;
 function showAsk(A, m, withButtons) {
-  $("askFrom").textContent = A.id + " → TOI";
-  $("askMsg").textContent = m;
-  $("askActs").hidden = !withButtons;
-  $("ask").hidden = false;
+  $("askFrom").textContent = A.id + " → TOI"; $("askMsg").textContent = m;
+  $("askActs").hidden = !withButtons; $("ask").hidden = false;
   clearTimeout(askTimer); askTimer = setTimeout(hideAsk, 7000);
 }
 function hideAsk() { $("ask").hidden = true; clearTimeout(askTimer); }
-function answer(text) { hideAsk(); sendMsg(USER, AG.CARO, text); }
-$("askYes").addEventListener("click", function () { answer("OK, vas-y"); });
-$("askNo").addEventListener("click", function () { answer("Plus tard"); });
+$("askYes").addEventListener("click", function () { hideAsk(); sendMsg(USER, AG.CARO, "OK, vas-y"); });
+$("askNo").addEventListener("click", function () { hideAsk(); sendMsg(USER, AG.CARO, "Plus tard"); });
 
 var mBox = $("missions"), mBtns = {};
 var autoBtn = document.createElement("button");
-autoBtn.type = "button"; autoBtn.className = "auto"; autoBtn.setAttribute("aria-pressed", "true");
+autoBtn.type = "button"; autoBtn.className = "auto";
 autoBtn.innerHTML = '<span class="dot"></span>Auto';
-autoBtn.addEventListener("click", function () {
-  auto = !auto; autoBtn.setAttribute("aria-pressed", String(auto));
-  if (auto && !current) runMission(nextAuto());
-});
+autoBtn.addEventListener("click", function () { SET.auto = !SET.auto; setAuto(SET.auto); applySettings(); });
 mBox.appendChild(autoBtn);
+function setAuto(on) { autoBtn.setAttribute("aria-pressed", String(on)); if (on && !current) runMission(nextAuto()); }
 MISSIONS.forEach(function (m) {
   var b = document.createElement("button");
   b.type = "button"; b.className = "mbtn"; b.textContent = m.label;
@@ -1195,23 +1351,6 @@ MISSIONS.forEach(function (m) {
   mBtns[m.id] = b; mBox.appendChild(b);
 });
 function markMission(id) { Object.keys(mBtns).forEach(function (k) { mBtns[k].setAttribute("aria-current", String(k === id)); }); }
-
-$("say").addEventListener("submit", function (e) {
-  e.preventDefault();
-  var text = $("sayIn").value.trim();
-  if (!text) return;
-  $("sayIn").value = "";
-  var pick = null;
-  for (var i = 0; i < KEYS.length; i++) if (KEYS[i][0].test(text)) { pick = KEYS[i][1]; break; }
-  var m;
-  if (pick) {
-    var base = MISSIONS.filter(function (x) { return x.id === pick; })[0];
-    m = { id: base.id, label: base.label, steps: base.steps.slice() };
-    if (m.steps[0][0] === "TOI") m.steps[0] = S("TOI", "VOX", "« " + text + " »");
-    autoIdx = MISSIONS.indexOf(base);
-  } else m = genericMission(text);
-  runMission(m);
-});
 
 var teamBox = $("team"), chips = {};
 GROUPS.forEach(function (g) {
@@ -1221,8 +1360,7 @@ GROUPS.forEach(function (g) {
     var b = document.createElement("button");
     b.type = "button"; b.className = "achip c-" + a.g;
     b.innerHTML = '<span class="sw"></span><span><span class="nm"></span><span class="rl"></span></span><span class="pill">En veille</span>';
-    b.querySelector(".nm").textContent = a.id;
-    b.querySelector(".rl").textContent = a.r;
+    b.querySelector(".nm").textContent = a.id; b.querySelector(".rl").textContent = a.r;
     b.addEventListener("click", function () { select(a.id); $("scroller").scrollIntoView({ block: "nearest", behavior: RM ? "auto" : "smooth" }); });
     chips[a.id] = { el: b, pill: b.querySelector(".pill"), st: "idle" };
     grid.appendChild(b);
@@ -1230,26 +1368,24 @@ GROUPS.forEach(function (g) {
 });
 var STATE_TXT = { idle: "En veille", work: "Au travail", talk: "Transmet" };
 function select(id) {
+  if (!AG[id] || id === "TOI") return;
   selected = id;
   Object.keys(chips).forEach(function (k) { chips[k].el.setAttribute("aria-pressed", String(k === id)); });
   renderDetail();
 }
 function renderDetail() {
-  var a = AG[selected], now = performance.now(), st = stateOf(a, now);
-  var d = $("detail");
+  var a = AG[selected], st = stateOf(a, performance.now()), d = $("detail");
   d.className = "detail c-" + a.g;
-  d.innerHTML = '<div class="top2"><h3></h3><span class="pill"></span></div><div class="role"></div><p class="desc"></p><div class="now"></div><div class="tools"></div>';
+  d.innerHTML = '<div class="top2"><h3></h3><span class="pill"></span></div><div class="role"></div><p></p><div class="now"></div><div class="tools"></div>';
   d.querySelector("h3").textContent = a.id;
   var pill = d.querySelector(".pill"); pill.textContent = STATE_TXT[st]; pill.className = "pill " + st;
-  d.querySelector(".role").textContent = a.r + " · " + a.sent + " message" + (a.sent > 1 ? "s" : "") + " envoyé" + (a.sent > 1 ? "s" : "");
-  d.querySelector(".desc").textContent = a.d;
+  d.querySelector(".role").textContent = a.r + " · " + a.sent + " message" + (a.sent > 1 ? "s" : "");
+  d.querySelector("p").textContent = a.d;
   d.querySelector(".now").textContent = st === "idle" ? "En veille · prochaine tâche : " + a.idle : "▸ " + a.task;
-  var tl = d.querySelector(".tools");
-  a.t.forEach(function (x) { var s = document.createElement("span"); s.textContent = x; tl.appendChild(s); });
+  a.t.forEach(function (x) { var s = document.createElement("span"); s.textContent = x; d.querySelector(".tools").appendChild(s); });
 }
 cv.addEventListener("click", function (e) {
-  var r = cv.getBoundingClientRect();
-  var x = (e.clientX - r.left) / r.width * LW, y = (e.clientY - r.top) / r.height * LH;
+  var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * LW, y = (e.clientY - r.top) / r.height * LH;
   var best = null, bd = 14;
   AGENTS.forEach(function (a) { var f = feet(a), dd = Math.hypot(x - f[0], y - (f[1] - 10)); if (dd < bd) { bd = dd; best = a; } });
   if (best) select(best.id);
@@ -1258,39 +1394,342 @@ var lastDetail = "";
 setInterval(function () {
   var now = performance.now(), active = 0;
   AGENTS.forEach(function (a) {
-    var st = stateOf(a, now);
-    if (st !== "idle") active++;
-    var c = chips[a.id];
-    if (c.st !== st) { c.st = st; c.pill.textContent = STATE_TXT[st]; c.pill.className = "pill " + st; }
+    var st = stateOf(a, now); if (st !== "idle") active++;
+    var c = chips[a.id]; if (c.st !== st) { c.st = st; c.pill.textContent = STATE_TXT[st]; c.pill.className = "pill " + st; }
   });
-  $("sActive").textContent = active + "/" + AGENTS.length;
-  $("sMsg").textContent = nMsg;
-  $("sDone").textContent = nDone;
+  $("sActive").textContent = active + "/" + AGENTS.length; $("sMsg").textContent = nMsg; $("sDone").textContent = nDone;
   var a = AG[selected], key = selected + stateOf(a, now) + a.task + a.sent;
   if (key !== lastDetail) { lastDetail = key; renderDetail(); }
   var dn = new Date(); $("clock").textContent = pad(dn.getHours()) + ":" + pad(dn.getMinutes());
 }, 250);
 
+/* ---------- Garage des bots ---------- */
+var BOTS = [
+  { n: "SolUT Bot", d: "Freqtrade · SOL/USDT", pnl: 6.4, on: true, c: "#b58cff", a: 2 },
+  { n: "Paper Agent", d: "UT Bot · papier", pnl: 3.1, on: true, c: "#4fd1ff", a: 1 },
+  { n: "Signal TV", d: "Webhook TradingView", pnl: -1.2, on: true, c: "#ff5ec8", a: 3 },
+  { n: "PocketSignals", d: "Signaux vérifiés par SENTRY", pnl: 0, on: false, c: "#ffb84d", a: 0 }
+];
+function robot(c, a) {
+  var ant = [
+    '<line x1="32" y1="14" x2="32" y2="3" stroke="' + c + '" stroke-width="2"/><circle cx="32" cy="3" r="3" fill="' + c + '"/>',
+    '<line x1="20" y1="16" x2="14" y2="4" stroke="' + c + '" stroke-width="2"/><line x1="44" y1="16" x2="50" y2="4" stroke="' + c + '" stroke-width="2"/><circle cx="14" cy="4" r="2.5" fill="' + c + '"/><circle cx="50" cy="4" r="2.5" fill="' + c + '"/>',
+    '<path d="M22 14 L32 2 L42 14 Z" fill="' + c + '"/>',
+    '<rect x="44" y="6" width="4" height="12" fill="' + c + '"/><rect x="42" y="4" width="8" height="3" fill="' + c + '"/>'][a];
+  return '<svg viewBox="0 0 64 72" aria-hidden="true" class="anim">' + ant + '<rect x="12" y="14" width="40" height="32" rx="6" fill="#1b2438" stroke="' + c + '" stroke-width="2"/><rect x="17" y="25" width="30" height="10" rx="5" fill="#0b0f1a"/><rect x="20" y="28" width="10" height="4" rx="2" fill="' + c + '"/><rect x="20" y="49" width="24" height="17" rx="5" fill="#1b2438" stroke="' + c + '" stroke-width="2"/><circle cx="32" cy="57" r="3" fill="' + c + '"/></svg>';
+}
+function renderBots() {
+  var box2 = $("bots"); box2.innerHTML = "";
+  BOTS.forEach(function (b) {
+    var c = document.createElement("div");
+    var on = b.on && !killOn;
+    c.className = "bot" + (on ? "" : " off");
+    c.innerHTML = robot(on ? b.c : "#3a4766", b.a) + '<div><div class="n"></div><div class="d"></div></div><div class="r"><span></span><br><button class="ghost" type="button" style="margin-top:6px;padding:4px 10px;font-size:12px"></button></div>';
+    c.querySelector(".n").textContent = b.n;
+    c.querySelector(".d").textContent = b.d + " · démo";
+    var sp = c.querySelector(".r span");
+    sp.textContent = (b.pnl >= 0 ? "+" : "−") + Math.abs(b.pnl).toFixed(1).replace(".", ",") + " %/sem.";
+    sp.className = b.pnl >= 0 ? "up" : "dn";
+    var btn = c.querySelector("button");
+    btn.textContent = killOn ? "Bloqué" : (b.on ? "Pause" : "Démarrer"); btn.disabled = killOn;
+    btn.addEventListener("click", function () { setBot(b.n, !b.on); });
+    box2.appendChild(c);
+  });
+}
+function setBot(name, on) {
+  var b = BOTS.filter(function (x) { return x.n.toLowerCase().indexOf(String(name).toLowerCase()) >= 0; })[0];
+  if (!b) throw new Error("Aucun bot nommé " + name + ". Bots : " + BOTS.map(function (x) { return x.n; }).join(", "));
+  if (killOn) throw new Error("L'interrupteur d'urgence est activé : les bots sont bloqués.");
+  b.on = !!on; renderBots();
+  sendMsg(AG.NEXUS, AG.CARO, b.n + (b.on ? " redémarré" : " mis en pause") + " (affichage)");
+  return b.n + (b.on ? " démarré" : " en pause") + " (affichage seulement)";
+}
+
+/* ---------- Analyseur de signaux ---------- */
+function parseSignal(t) {
+  var s = t.toUpperCase();
+  var pair = (s.match(/[A-Z]{2,6}\s*\/\s*[A-Z]{3,5}/) || s.match(/\b(SOL|BTC|ETH|XRP|JUP|BONK|WIF)\b/) || [""])[0].replace(/\s/g, "");
+  var side = /\b(BUY|LONG|ACHAT|CALL|UP)\b/.test(s) ? "ACHAT" : /\b(SELL|SHORT|VENTE|PUT|DOWN)\b/.test(s) ? "VENTE" : "";
+  function numk(k) { var m = s.match(new RegExp(k + "\\s*[:=]?\\s*([0-9]+[.,]?[0-9]*)")); return m ? parseFloat(m[1].replace(",", ".")) : null; }
+  var ent = (s.match(/(?:BUY|SELL|LONG|SHORT|ACHAT|VENTE|ENTRY)\s*[:@]?\s*([0-9]+[.,]?[0-9]*)/) || [])[1];
+  var tp = numk("TP"), sl = numk("SL");
+  return { pair: pair, side: side, tp: tp, sl: sl, entry: ent ? parseFloat(ent.replace(",", ".")) : null, timeTrade: /\b\d+\s*(M|MIN|S|SEC)\b/.test(s) && !tp };
+}
+function checkSignal(t) {
+  var p = parseSignal(t), iss = [], rr = "";
+  if (!p.pair) iss.push("paire introuvable");
+  if (!p.side) iss.push("sens introuvable");
+  if (p.timeTrade) iss.push("option binaire à durée fixe, on y touche pas");
+  if (!p.sl && !p.timeTrade) iss.push("pas de stop-loss");
+  if (p.entry && p.tp && p.sl) {
+    var r = Math.abs(p.tp - p.entry) / Math.abs(p.entry - p.sl);
+    rr = " Gain/risque : " + r.toFixed(2).replace(".", ",") + ".";
+    if (r < 1.5) iss.push("gain/risque trop bas");
+  }
+  if (killOn) iss.push("interrupteur d'urgence activé");
+  var msg = iss.length ? "Mis de côté : " + iss.join(", ") + "." + rr : p.side + " " + p.pair + " accepté en papier." + rr;
+  var o = $("sigOut"); o.hidden = false; o.innerHTML = "";
+  var b = document.createElement("b"); b.textContent = (iss.length ? "SENTRY" : "PULSE") + " › ";
+  o.appendChild(b); o.appendChild(document.createTextNode(msg));
+  o.style.borderLeftColor = iss.length ? "var(--guard)" : "var(--gain)";
+  sendMsg(AG.SENTRY, iss.length ? AG.CARO : AG.PULSE, (p.pair || "Signal") + " : " + msg, iss.length > 0);
+  return msg;
+}
+$("sigGo").addEventListener("click", function () {
+  var t = $("sig").value.trim();
+  if (!t) { var o = $("sigOut"); o.hidden = false; o.textContent = "SENTRY › Colle un signal d'abord."; return; }
+  checkSignal(t); $("sig").value = "";
+});
+
 /* ============================================================
-   TRADING (repris de Cybertrash)
+   GRAPHIQUES : mêmes calculs que le script Pine CARO
+   ============================================================ */
+function sma(a, n, i) { var s = 0; for (var k = i - n + 1; k <= i; k++) s += a[k]; return s / n; }
+function emaArr(a, n) {
+  var out = new Array(a.length).fill(null), al = 2 / (n + 1);
+  for (var i = 0; i < a.length; i++) {
+    if (i < n - 1) continue;
+    out[i] = out[i - 1] == null ? sma(a, n, i) : al * a[i] + (1 - al) * out[i - 1];
+  }
+  return out;
+}
+function emaNullable(a, n) {
+  var out = new Array(a.length).fill(null), al = 2 / (n + 1), buf = [];
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] == null) continue;
+    if (out[i - 1] == null) { buf.push(a[i]); if (buf.length >= n) out[i] = buf.slice(-n).reduce(function (x, y) { return x + y; }, 0) / n; }
+    else out[i] = al * a[i] + (1 - al) * out[i - 1];
+  }
+  return out;
+}
+function rsiArr(c, n) {
+  var out = new Array(c.length).fill(null), up = 0, dn = 0;
+  for (var i = 1; i < c.length; i++) {
+    var ch = c[i] - c[i - 1], u = Math.max(ch, 0), d = Math.max(-ch, 0);
+    if (i <= n) { up += u; dn += d; if (i === n) { up /= n; dn /= n; out[i] = dn === 0 ? 100 : 100 - 100 / (1 + up / dn); } }
+    else { up = (up * (n - 1) + u) / n; dn = (dn * (n - 1) + d) / n; out[i] = dn === 0 ? 100 : 100 - 100 / (1 + up / dn); }
+  }
+  return out;
+}
+function bbArr(c, n, k) {
+  var mid = [], upA = [], loA = [];
+  for (var i = 0; i < c.length; i++) {
+    if (i < n - 1) { mid.push(null); upA.push(null); loA.push(null); continue; }
+    var m = sma(c, n, i), v = 0;
+    for (var j = i - n + 1; j <= i; j++) v += (c[j] - m) * (c[j] - m);
+    var sd = Math.sqrt(v / n);
+    mid.push(m); upA.push(m + k * sd); loA.push(m - k * sd);
+  }
+  return { mid: mid, up: upA, lo: loA };
+}
+function computeInd(candles) {
+  var c = candles.map(function (x) { return x.close; });
+  var e20 = emaArr(c, 20), e50 = emaArr(c, 50), e200 = emaArr(c, 200);
+  var bb = bbArr(c, 20, 2), rsi = rsiArr(c, 14);
+  var e12 = emaArr(c, 12), e26 = emaArr(c, 26);
+  var macd = c.map(function (_, i) { return e12[i] != null && e26[i] != null ? e12[i] - e26[i] : null; });
+  var sig = emaNullable(macd, 9);
+  var marks = [];
+  for (var i = 1; i < c.length; i++) {
+    if (e20[i] == null || e50[i] == null || e20[i - 1] == null || e50[i - 1] == null || rsi[i] == null || sig[i] == null) continue;
+    var crossUp = e20[i - 1] <= e50[i - 1] && e20[i] > e50[i], crossDn = e20[i - 1] >= e50[i - 1] && e20[i] < e50[i];
+    if (crossUp && rsi[i] > 50 && macd[i] > sig[i]) marks.push({ i: i, t: "bull" });
+    if (crossDn && rsi[i] < 50 && macd[i] < sig[i]) marks.push({ i: i, t: "bear" });
+    if (rsi[i - 1] != null && rsi[i - 1] <= 70 && rsi[i] > 70) marks.push({ i: i, t: "ob" });
+    if (rsi[i - 1] != null && rsi[i - 1] >= 30 && rsi[i] < 30) marks.push({ i: i, t: "os" });
+  }
+  return { c: c, e20: e20, e50: e50, e200: e200, bb: bb, rsi: rsi, macd: macd, sig: sig, marks: marks };
+}
+var chartSym = "SOLUSD", chartTf = "1hr", candles = [], ind = null, liveAt = null, mini = [];
+var charts = null, mcpNS = null, mcpTried = false;
+function demoCandles() {
+  var r = rng(42), out = [], p = 150, step = { "15m": 900, "1hr": 3600, "6hr": 21600, "1day": 86400 }[chartTf];
+  var t0 = Math.floor(Date.now() / 1000 / step) * step - 400 * step;
+  for (var i = 0; i < 400; i++) {
+    var o = p, drift = Math.sin(i / 37) * 0.002 + (r() - 0.5) * 0.02;
+    var cl = o * (1 + drift), hi = Math.max(o, cl) * (1 + r() * 0.006), lo = Math.min(o, cl) * (1 - r() * 0.006);
+    out.push({ time: t0 + i * step, open: o, high: hi, low: lo, close: cl }); p = cl;
+  }
+  return out;
+}
+function parseGemini(payload) {
+  var data = payload;
+  if (typeof data === "string") {
+    var a = data.indexOf("["), b = data.lastIndexOf("]");
+    if (a < 0 || b < a) throw new Error("Réponse inattendue");
+    data = JSON.parse(data.slice(a, b + 1));
+  }
+  if (!Array.isArray(data)) throw new Error("Réponse inattendue");
+  var out = data.filter(function (r) { return Array.isArray(r) && r.length >= 5; }).map(function (r) {
+    return { time: Math.floor(Number(r[0]) / 1000), open: +r[1], high: +r[2], low: +r[3], close: +r[4] };
+  }).filter(function (x) { return isFinite(x.close) && x.time > 0; });
+  out.sort(function (x, y) { return x.time - y.time; });
+  var dedup = []; out.forEach(function (x) { if (!dedup.length || dedup[dedup.length - 1].time !== x.time) dedup.push(x); });
+  return dedup.slice(-500);
+}
+function setSource(live) {
+  var p = $("srcPill");
+  if (live) { p.className = "src live"; p.textContent = "Gemini · " + pad(liveAt.getHours()) + ":" + pad(liveAt.getMinutes()); }
+  else { p.className = "src demo"; p.textContent = "Démo"; }
+}
+function loadMarket(userAsked) {
+  candles = demoCandles(); liveAt = null; setSource(false); applyCandles();
+  if (!userAsked && !mcpTried) return Promise.resolve("demo");
+  mcpTried = true;
+  var useP = mcpNS ? Promise.resolve(mcpNS) : (window.claude && window.claude.use ? window.claude.use("mcp") : Promise.resolve(null));
+  return useP.then(function (mcp) {
+    mcpNS = mcp;
+    if (!mcp) { $("srcNote").textContent = "Les vrais prix ne sont pas disponibles ici : les données affichées sont une démo."; return "demo"; }
+    $("srcNote").textContent = "Chargement des prix " + chartSym + " depuis Gemini…";
+    return mcp.callTool("Gemini", "gemini_list_candles", { symbol: chartSym, time_frame: chartTf }, { cache: { staleTime: 60000 } }).then(function (res) {
+      var cs = parseGemini(res.payload != null ? res.payload : (res.content && res.content[0] && res.content[0].text));
+      if (cs.length < 30) throw new Error("Pas assez de bougies");
+      candles = cs; liveAt = new Date(); setSource(true); applyCandles();
+      $("srcNote").textContent = "Vrais prix de Gemini, en lecture seule. " + cs.length + " bougies.";
+      sendMsg(AG.LEDGER, AG.CARO, chartSym + " " + chartTf + " chargé depuis Gemini");
+      return "live";
+    });
+  }).catch(function (e) {
+    var code = e && e.code;
+    var msg = code === "not_in_manifest" ? "Tu as refusé l'accès à Gemini pour cette page : on reste en démo." :
+      code === "server_not_connected" ? "Le connecteur Gemini n'est pas branché : ajoute-le dans claude.ai, Paramètres, Connecteurs." :
+      code === "needs_reauth" ? "Reconnecte Gemini dans claude.ai, Paramètres, Connecteurs." :
+      "Gemini ne répond pas pour l'instant (" + (code || (e && e.message) || "erreur") + "). Données de démo.";
+    $("srcNote").textContent = msg;
+    return "demo";
+  });
+}
+function lastVal(a) { for (var i = a.length - 1; i >= 0; i--) if (a[i] != null) return a[i]; return null; }
+function fmtP(v) { if (v == null) return "?"; return v >= 1000 ? Math.round(v).toLocaleString("fr-CA") : v.toFixed(v >= 1 ? 2 : 5).replace(".", ","); }
+function marketSummary() {
+  if (!ind) return null;
+  var n = ind.c.length - 1, close = ind.c[n], e50 = ind.e50[n], e200 = ind.e200[n], r = ind.rsi[n], m = ind.macd[n], s = ind.sig[n], bu = ind.bb.up[n], e20 = ind.e20[n];
+  var trendUp = e200 != null && close > e200 && e20 > e50, trendDn = e200 != null && close < e200 && e20 < e50;
+  var rules = [
+    ["Prix au-dessus de l'EMA 200", e200 != null && close > e200, e200 != null ? "EMA 200 : " + fmtP(e200) : "pas assez de bougies"],
+    ["Prix au-dessus de l'EMA 50", e50 != null && close > e50, "EMA 50 : " + fmtP(e50)],
+    ["MACD au-dessus de son signal", m != null && s != null && m > s, m != null && s != null ? (m - s >= 0 ? "+" : "") + (m - s).toFixed(3).replace(".", ",") : "?"],
+    ["RSI entre 45 et 70", r != null && r > 45 && r < 70, "RSI " + (r != null ? r.toFixed(0) : "?")],
+    ["Prix sous la bande de Bollinger haute", bu != null && close < bu, "bande : " + fmtP(bu)]
+  ];
+  var lastMark = ind.marks.length ? ind.marks[ind.marks.length - 1] : null;
+  var lmText = lastMark ? ({ bull: "Croisement haussier", bear: "Croisement baissier", ob: "RSI suracheté", os: "RSI survendu" }[lastMark.t] + ", il y a " + (n - lastMark.i) + " bougie" + (n - lastMark.i > 1 ? "s" : "")) : "Aucun récemment";
+  return { symbole: chartSym, intervalle: chartTf, source: liveAt ? "Gemini en direct" : "démo", prix: close, tendance: trendUp ? "haussière" : trendDn ? "baissière" : "neutre",
+    rsi: r != null ? Math.round(r) : null, macd_au_dessus_signal: m != null && s != null ? m > s : null, ecart_ema200_pct: e200 ? +((close - e200) / e200 * 100).toFixed(2) : null,
+    score: rules.filter(function (x) { return x[1]; }).length, regles: rules, dernier_signal: lmText };
+}
+function renderMarketPanels() {
+  var s = marketSummary(); if (!s) return;
+  $("gdash").innerHTML = [
+    [liveAt ? "Prix" : "Prix (démo, pas réel)", fmtP(s.prix) + " $ US", liveAt ? "" : "wm"],
+    ["Tendance", s.tendance === "haussière" ? "Haussière" : s.tendance === "baissière" ? "Baissière" : "Neutre", s.tendance === "haussière" ? "up" : s.tendance === "baissière" ? "dn" : ""],
+    ["RSI 14", s.rsi != null ? String(s.rsi) : "?", s.rsi > 70 ? "wm" : s.rsi < 30 ? "dn" : ""],
+    ["MACD", s.macd_au_dessus_signal ? "Au-dessus" : "Sous le signal", s.macd_au_dessus_signal ? "up" : "dn"],
+    ["Écart EMA 200", s.ecart_ema200_pct != null ? (s.ecart_ema200_pct >= 0 ? "+" : "") + String(s.ecart_ema200_pct).replace(".", ",") + " %" : "?", s.ecart_ema200_pct >= 0 ? "up" : "dn"],
+    ["Dernier signal", s.dernier_signal, ""]
+  ].map(function (x) { return '<div><small>' + x[0] + '</small><strong class="' + x[2] + '">' + x[1] + '</strong></div>'; }).join("");
+  $("scoreSub").textContent = "Les 5 règles sur la dernière bougie de " + chartSym + " (" + chartTf + ", " + s.source + ").";
+  $("signal").innerHTML = s.regles.map(function (x) {
+    return '<div class="cond"><span class="tick ' + (x[1] ? "y" : "n") + '">' + (x[1] ? "✓" : "✕") + '</span><span>' + x[0] + '</span><span>' + x[2] + '</span></div>';
+  }).join("") + '<div class="gauge"><i style="width:' + (s.score / 5 * 100) + '%"></i></div><div class="rv"><span>Score ' + s.score + " sur 5</span><span>Pas un conseil financier</span></div>";
+}
+function applyCandles() {
+  ind = computeInd(candles);
+  var cl = ind.c.slice(-40), mn = Math.min.apply(null, cl), mx = Math.max.apply(null, cl);
+  mini = cl.map(function (v) { return mx > mn ? (v - mn) / (mx - mn) : 0.5; });
+  renderMarketPanels();
+  if (charts) drawCharts();
+}
+function chartOpts(h) {
+  var css = getComputedStyle(document.documentElement);
+  return { autoSize: true, layout: { background: { type: "solid", color: css.getPropertyValue("--bg").trim() || "#06080d" }, textColor: "#8796b8", fontFamily: "JetBrains Mono, monospace", fontSize: 11 },
+    grid: { vertLines: { color: "rgba(28,39,64,.5)" }, horzLines: { color: "rgba(28,39,64,.5)" } },
+    rightPriceScale: { borderColor: "#1c2740" }, timeScale: { borderColor: "#1c2740", timeVisible: true, visible: h },
+    crosshair: { mode: 0 }, handleScale: { axisPressedMouseMove: false } };
+}
+function initCharts() {
+  if (charts || typeof LightweightCharts === "undefined") {
+    if (!charts && typeof LightweightCharts === "undefined") $("chartsBox").innerHTML = '<div class="cfail">Le module de graphiques n\'a pas pu se charger. Les indicateurs ci-dessous restent calculés.</div>';
+    return;
+  }
+  var P = LightweightCharts.createChart($("pchart"), chartOpts(false));
+  var R = LightweightCharts.createChart($("rchart"), chartOpts(false));
+  var M = LightweightCharts.createChart($("mchart"), chartOpts(true));
+  var line = function (ch, color, w) { return ch.addLineSeries({ color: color, lineWidth: w || 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }); };
+  charts = {
+    P: P, R: R, M: M,
+    bbU: line(P, "rgba(135,150,184,.55)"), bbL: line(P, "rgba(135,150,184,.55)"),
+    candle: P.addCandlestickSeries({ upColor: "#3df5a8", downColor: "#ff4d6d", borderVisible: false, wickUpColor: "#3df5a8", wickDownColor: "#ff4d6d" }),
+    e20: line(P, "#4fd1ff"), e50: line(P, "#b58cff"), e200: line(P, "#ffb84d", 2),
+    rsi: line(R, "#d8f36a", 1.5),
+    hist: M.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false }),
+    macd: line(M, "#4fd1ff", 1.5), sig: line(M, "#ffb84d", 1.5)
+  };
+  charts.rsi.createPriceLine({ price: 70, color: "rgba(255,184,77,.6)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false });
+  charts.rsi.createPriceLine({ price: 30, color: "rgba(79,209,255,.6)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false });
+  var syncing = false;
+  [P, R, M].forEach(function (src) {
+    src.timeScale().subscribeVisibleLogicalRangeChange(function (r) {
+      if (syncing || !r) return; syncing = true;
+      [P, R, M].forEach(function (dst) { if (dst !== src) dst.timeScale().setVisibleLogicalRange(r); });
+      syncing = false;
+    });
+  });
+  drawCharts();
+}
+function themeCharts() {
+  if (!charts) return;
+  var bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  [charts.P, charts.R, charts.M].forEach(function (c) { c.applyOptions({ layout: { background: { type: "solid", color: bg } } }); });
+  charts.rsi.applyOptions({ color: GLOW });
+}
+function series(arr) { var out = []; for (var i = 0; i < candles.length; i++) if (arr[i] != null) out.push({ time: candles[i].time, value: arr[i] }); return out; }
+function drawCharts() {
+  if (!charts || !ind) return;
+  charts.candle.setData(candles);
+  charts.e20.setData(series(ind.e20)); charts.e50.setData(series(ind.e50)); charts.e200.setData(series(ind.e200));
+  charts.bbU.setData(series(ind.bb.up)); charts.bbL.setData(series(ind.bb.lo));
+  charts.rsi.setData(series(ind.rsi));
+  charts.macd.setData(series(ind.macd)); charts.sig.setData(series(ind.sig));
+  var h = []; for (var i = 0; i < candles.length; i++) if (ind.macd[i] != null && ind.sig[i] != null) { var v = ind.macd[i] - ind.sig[i]; h.push({ time: candles[i].time, value: v, color: v >= 0 ? "rgba(61,245,168,.6)" : "rgba(255,77,109,.6)" }); }
+  charts.hist.setData(h);
+  charts.candle.setMarkers(ind.marks.map(function (m) {
+    var tm = candles[m.i].time;
+    if (m.t === "bull") return { time: tm, position: "belowBar", color: "#3df5a8", shape: "arrowUp", text: "HAUSSE" };
+    if (m.t === "bear") return { time: tm, position: "aboveBar", color: "#ff4d6d", shape: "arrowDown", text: "BAISSE" };
+    if (m.t === "ob") return { time: tm, position: "aboveBar", color: "#ffb84d", shape: "circle" };
+    return { time: tm, position: "belowBar", color: "#4fd1ff", shape: "circle" };
+  }));
+  var n = candles.length;
+  charts.P.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 120), to: n + 3 });
+}
+function setChart(sym, tf, userAsked) {
+  if (sym) chartSym = sym; if (tf) chartTf = tf;
+  $$("#symChips .chip").forEach(function (c) { c.setAttribute("aria-pressed", String(c.getAttribute("data-s") === chartSym)); });
+  $$("#tfChips .chip").forEach(function (c) { c.setAttribute("aria-pressed", String(c.getAttribute("data-t") === chartTf)); });
+  return loadMarket(userAsked);
+}
+$$("#symChips .chip").forEach(function (c) { c.addEventListener("click", function () { setChart(c.getAttribute("data-s"), null, mcpTried); }); });
+$$("#tfChips .chip").forEach(function (c) { c.addEventListener("click", function () { setChart(null, c.getAttribute("data-t"), mcpTried); }); });
+$("reload").addEventListener("click", function () { $("reload").textContent = "Actualiser"; setChart(null, null, true); });
+
+/* ============================================================
+   DIAGNOSTICS (repris de Cybertrash)
    ============================================================ */
 var START = 1000, DAY = 864e5, SVGNS = "http://www.w3.org/2000/svg";
 function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function fmt$(v) { return Math.round(v).toLocaleString("fr-CA") + " $"; }
 function pct(v, d) { d = d == null ? 1 : d; return (v >= 0 ? "+" : "−") + Math.abs(v * 100).toFixed(d).replace(".", ",") + " %"; }
 function num(v, d) { return v.toFixed(d).replace(".", ","); }
-function dShort(iso) { return new Date(iso).toLocaleDateString("fr-CA", { day: "numeric", month: "short" }); }
+function dShort(iso2) { return new Date(iso2).toLocaleDateString("fr-CA", { day: "numeric", month: "short" }); }
 var trades = [], isDemo = true, range = "all", mcRisk = 1, mcSeed = 7, firstDraw = true, killOn = false;
-
 function genDemo() {
   var r = rng(20261005), out = [], end = Date.UTC(2026, 9, 5, 12);
   var syms = ["SOL", "SOL", "SOL", "SOL", "SOL", "BTC", "BTC", "ETH", "ETH", "JUP", "HYPE"];
   for (var d = 89; d >= 0; d--) {
-    var idx = 89 - d, day = end - d * DAY;
-    var n = r() < 0.22 ? 0 : (r() < 0.62 ? 1 : 2);
+    var idx = 89 - d, day = end - d * DAY, n = r() < 0.22 ? 0 : (r() < 0.62 ? 1 : 2);
     for (var k = 0; k < n; k++) {
-      var score = 3 + Math.floor(r() * 3);
-      var bad = idx >= 38 && idx <= 54;
+      var score = 3 + Math.floor(r() * 3), bad = idx >= 38 && idx <= 54;
       var wp = (bad ? 0.30 : 0.48) + (score - 4) * 0.05;
       var R = r() < wp ? 0.9 + r() * 1.5 : -(0.8 + r() * 0.35);
       out.push({ t: new Date(day + Math.floor(r() * 20) * 36e5).toISOString(), symbol: syms[Math.floor(r() * syms.length)], r: R, ret: R * 0.01, score: score });
@@ -1314,11 +1753,7 @@ function parseTrades(txt) {
   out.sort(function (a, b) { return a.t < b.t ? -1 : 1; });
   return out;
 }
-function equity(tr) {
-  var e = START, s = [{ t: +new Date(tr[0].t) - 36e5, e: e, x: null }];
-  tr.forEach(function (x) { e *= 1 + x.ret; s.push({ t: +new Date(x.t), e: e, x: x }); });
-  return s;
-}
+function equity(tr) { var e = START, s = [{ t: +new Date(tr[0].t) - 36e5, e: e, x: null }]; tr.forEach(function (x) { e *= 1 + x.ret; s.push({ t: +new Date(x.t), e: e, x: x }); }); return s; }
 function tstats(tr) {
   var wins = tr.filter(function (x) { return x.ret > 0; }), losses = tr.filter(function (x) { return x.ret <= 0; });
   var gw = wins.reduce(function (a, x) { return a + x.ret; }, 0), gl = Math.abs(losses.reduce(function (a, x) { return a + x.ret; }, 0));
@@ -1329,25 +1764,16 @@ function tstats(tr) {
   return { n: tr.length, wr: wins.length / tr.length, pf: gl ? gw / gl : Infinity, mdd: mdd, total: s[s.length - 1].e / START - 1,
     avgR: tr.reduce(function (a, x) { return a + x.r; }, 0) / tr.length, worst: worst, eq: s, gw: gw, wins: wins };
 }
-function el(tag, attrs, txt) {
-  var e = document.createElementNS(SVGNS, tag);
-  for (var k in attrs) e.setAttribute(k, attrs[k]);
-  if (txt != null) e.textContent = txt;
-  return e;
-}
+function el(tag, attrs, txt) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (txt != null) e.textContent = txt; return e; }
 function renderEquity() {
   var st = tstats(trades), all = st.eq, s = all, lastT = all[all.length - 1].t;
   if (range !== "all") { var cut = lastT - range * DAY; s = all.filter(function (p) { return p.t >= cut; }); if (s.length < 2) s = all.slice(-2); }
-  var W = 360, H = 200, P = 6;
-  var vals = s.map(function (p) { return p.e; });
-  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
-  var padv = (mx - mn) * 0.12 || 1, lo = mn - padv, hi = mx + padv;
-  var X = function (i) { return P + (W - 2 * P) * i / (s.length - 1); };
-  var Y = function (v) { return H - P - (H - 2 * P) * (v - lo) / (hi - lo); };
+  var W = 360, H = 200, P = 6, vals = s.map(function (p) { return p.e; });
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals), padv = (mx - mn) * 0.12 || 1, lo = mn - padv, hi = mx + padv;
+  var X = function (i) { return P + (W - 2 * P) * i / (s.length - 1); }, Y = function (v) { return H - P - (H - 2 * P) * (v - lo) / (hi - lo); };
   var d = s.map(function (p, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(p.e).toFixed(1); }).join("");
-  var up = s[s.length - 1].e >= s[0].e;
   var svg = $("eq"); svg.innerHTML = "";
-  svg.style.color = up ? "var(--gain)" : "var(--loss)";
+  svg.style.color = s[s.length - 1].e >= s[0].e ? "var(--gain)" : "var(--loss)";
   var defs = el("defs", {}), g = el("linearGradient", { id: "gEq", x1: "0", y1: "0", x2: "0", y2: "1" });
   g.appendChild(el("stop", { offset: "0", "stop-color": "currentColor", "stop-opacity": ".35" }));
   g.appendChild(el("stop", { offset: "1", "stop-color": "currentColor", "stop-opacity": "0" }));
@@ -1362,24 +1788,19 @@ function renderEquity() {
   var mk = el("line", { x1: 0, x2: 0, y1: 0, y2: H, stroke: "var(--fg)", "stroke-opacity": ".5", visibility: "hidden" });
   var dotm = el("circle", { r: "5", fill: "var(--fg)", stroke: "currentColor", "stroke-width": "2", visibility: "hidden" });
   svg.appendChild(mk); svg.appendChild(dotm);
-  var last = all[all.length - 1];
-  if (firstDraw && !RM && currentTab === "trading") {
+  if (firstDraw && !STILL() && currentTab === "diag") {
     var len = line.getTotalLength();
     line.style.strokeDasharray = len; line.style.strokeDashoffset = len;
     void line.getBoundingClientRect();
-    line.style.transition = "stroke-dashoffset 1.6s cubic-bezier(.3,.7,.2,1)";
-    line.style.strokeDashoffset = 0;
+    line.style.transition = "stroke-dashoffset 1.6s cubic-bezier(.3,.7,.2,1)"; line.style.strokeDashoffset = 0;
     firstDraw = false;
   }
-  $("eqNum").textContent = fmt$(last.e);
-  var days = Math.max(1, Math.round((lastT - all[0].t) / DAY));
-  var dl = $("eqDelta"); dl.className = "delta " + (st.total >= 0 ? "up" : "dn");
-  dl.textContent = pct(st.total) + " en " + days + " jours";
-  var dflt = "Glisse ton doigt sur la courbe pour voir chaque trade.", lab = $("eqLabel");
-  lab.textContent = dflt;
+  $("eqNum").textContent = fmt$(all[all.length - 1].e);
+  var days = Math.max(1, Math.round((lastT - all[0].t) / DAY)), dl = $("eqDelta");
+  dl.className = "delta " + (st.total >= 0 ? "up" : "dn"); dl.textContent = pct(st.total) + " en " + days + " jours";
+  var dflt = "Glisse ton doigt sur la courbe pour voir chaque trade.", lab = $("eqLabel"); lab.textContent = dflt;
   function scrub(ev) {
-    var b = svg.getBoundingClientRect(), f = Math.min(1, Math.max(0, (ev.clientX - b.left) / b.width));
-    var i = Math.round(f * (s.length - 1)), p = s[i];
+    var b = svg.getBoundingClientRect(), f = Math.min(1, Math.max(0, (ev.clientX - b.left) / b.width)), i = Math.round(f * (s.length - 1)), p = s[i];
     mk.setAttribute("x1", X(i)); mk.setAttribute("x2", X(i)); mk.setAttribute("visibility", "visible");
     dotm.setAttribute("cx", X(i)); dotm.setAttribute("cy", Y(p.e)); dotm.setAttribute("visibility", "visible");
     var txt = dShort(p.t) + ", " + fmt$(p.e);
@@ -1391,90 +1812,60 @@ function renderEquity() {
 }
 function renderTStats() {
   var s = tstats(trades);
-  var items = [
+  $("tstats").innerHTML = [
     ["Rendement", pct(s.total), s.total >= 0 ? "up" : "dn"],
     ["Trades gagnants", Math.round(s.wr * 100) + " %", s.wr >= 0.5 ? "up" : "wm"],
     ["Facteur de profit", isFinite(s.pf) ? num(s.pf, 2) : "∞", s.pf >= 1.3 ? "up" : (s.pf >= 1 ? "wm" : "dn")],
     ["Baisse maximale", "−" + num(s.mdd * 100, 1) + " %", s.mdd > 0.15 ? "dn" : (s.mdd > 0.08 ? "wm" : "up")],
     ["Gain moyen", (s.avgR >= 0 ? "+" : "−") + num(Math.abs(s.avgR), 2) + " R", s.avgR >= 0 ? "up" : "dn"],
     ["Trades", String(s.n), ""]
-  ];
-  $("tstats").innerHTML = items.map(function (i) { return '<div><small>' + i[0] + '</small><strong class="' + i[2] + '">' + i[1] + '</strong></div>'; }).join("");
+  ].map(function (i) { return '<div><small>' + i[0] + '</small><strong class="' + i[2] + '">' + i[1] + '</strong></div>'; }).join("");
 }
-
-var BOTS = [
-  { n: "SolUT Bot", d: "Freqtrade · SOL/USDT", pnl: 6.4, on: true },
-  { n: "Paper Agent", d: "UT Bot · papier", pnl: 3.1, on: true },
-  { n: "Signal TV", d: "Webhook TradingView", pnl: -1.2, on: true },
-  { n: "PocketSignals", d: "Signaux Telegram, vérifiés par SENTRY", pnl: 0, on: false }
-];
-function renderBots() {
-  $("bots").innerHTML = "";
-  BOTS.forEach(function (b, i) {
-    var c = document.createElement("div");
-    c.className = "bot" + (b.on && !killOn ? "" : " off");
-    c.innerHTML = '<div><div class="n"></div><div class="d"></div></div><div class="r"><span></span><br><button class="ghost" type="button" style="margin-top:6px;padding:4px 10px;font-size:12px"></button></div>';
-    c.querySelector(".n").textContent = b.n;
-    c.querySelector(".d").textContent = b.d + " · démo";
-    var sp = c.querySelector(".r span");
-    sp.textContent = (b.pnl >= 0 ? "+" : "−") + Math.abs(b.pnl).toFixed(1).replace(".", ",") + " % / sem.";
-    sp.className = b.pnl >= 0 ? "up" : "dn";
-    var btn = c.querySelector("button");
-    btn.textContent = killOn ? "Bloqué" : (b.on ? "Pause" : "Démarrer");
-    btn.disabled = killOn;
-    btn.addEventListener("click", function () {
-      b.on = !b.on; renderBots();
-      sendMsg(AG.NEXUS, AG.CARO, b.n + (b.on ? " redémarré (affichage)" : " mis en pause (affichage)"));
-    });
-    $("bots").appendChild(c);
+function monthly() {
+  var by = {};
+  trades.forEach(function (x) { var k = x.t.slice(0, 7); (by[k] = by[k] || []).push(x); });
+  return Object.keys(by).sort().map(function (k) {
+    var tr = by[k], ret = tr.reduce(function (a, x) { return a * (1 + x.ret); }, 1) - 1;
+    var w = tr.filter(function (x) { return x.ret > 0; }).length;
+    var best = Math.max.apply(null, tr.map(function (x) { return x.ret; })), worst = Math.min.apply(null, tr.map(function (x) { return x.ret; }));
+    var d = new Date(k + "-15T12:00:00Z");
+    return { k: k, label: d.toLocaleDateString("fr-CA", { month: "short", year: "numeric" }), n: tr.length, wr: w / tr.length, ret: ret, best: best, worst: worst };
   });
 }
-function renderSignalScore() {
-  var c = [
-    ["Prix au-dessus de l'EMA 200", "Tendance longue haussière", true],
-    ["Prix au-dessus de l'EMA 50", "Sous ce niveau, on sort", true],
-    ["MACD au-dessus de son signal", "Momentum confirmé", true],
-    ["RSI entre 45 et 70", "RSI à 62", true],
-    ["Prix sous la bande de Bollinger haute", "Un peu étiré", false]
-  ];
-  var score = c.filter(function (x) { return x[2]; }).length;
-  $("signal").innerHTML = c.map(function (x) {
-    return '<div class="cond"><span class="tick ' + (x[2] ? "y" : "n") + '">' + (x[2] ? "✓" : "✕") + '</span><span>' + x[0] + '</span><span>' + x[1] + '</span></div>';
-  }).join("") + '<div class="gauge"><i style="width:' + (score / 5 * 100) + '%"></i></div><div class="rv"><span>Score ' + score + " sur 5</span><span>Exemple, pas un conseil</span></div>";
+function renderMonthly() {
+  var ms = monthly(), W = 360, H = 150, P = 18;
+  var mx = Math.max(0.01, Math.max.apply(null, ms.map(function (m) { return Math.abs(m.ret); })));
+  var zero = H / 2, bw = Math.min(56, (W - 2 * P) / ms.length - 10), svg = $("mbars"); svg.innerHTML = "";
+  svg.appendChild(el("line", { x1: 0, x2: W, y1: zero, y2: zero, stroke: "var(--line)" }));
+  ms.forEach(function (m, i) {
+    var cx = P + (W - 2 * P) * (i + 0.5) / ms.length, h = Math.abs(m.ret) / mx * (H / 2 - 22), y = m.ret >= 0 ? zero - h : zero;
+    svg.appendChild(el("rect", { x: cx - bw / 2, y: y, width: bw, height: Math.max(1, h), fill: m.ret >= 0 ? "var(--gain)" : "var(--loss)", "fill-opacity": ".85" }));
+    svg.appendChild(el("text", { x: cx, y: m.ret >= 0 ? y - 4 : y + h + 11, "text-anchor": "middle", fill: "var(--fg)", "font-size": "10" }, pct(m.ret, 1)));
+    svg.appendChild(el("text", { x: cx, y: H - 2, "text-anchor": "middle", fill: "var(--muted)", "font-size": "9" }, m.label));
+  });
+  $("mtable").innerHTML = ms.map(function (m) {
+    return "<tr><td>" + m.label + "</td><td>" + m.n + "</td><td>" + Math.round(m.wr * 100) + " %</td><td class='" + (m.ret >= 0 ? "up" : "dn") + "'>" + pct(m.ret, 1) + "</td><td class='up'>" + pct(m.best, 2) + "</td><td class='dn'>" + pct(m.worst, 2) + "</td></tr>";
+  }).join("");
 }
-function parseSignal(t) {
-  var s = t.toUpperCase();
-  var pair = (s.match(/[A-Z]{2,6}\s*\/\s*[A-Z]{3,5}/) || s.match(/\b(SOL|BTC|ETH|XRP|JUP|BONK|WIF)\b/) || [""])[0].replace(/\s/g, "");
-  var side = /\b(BUY|LONG|ACHAT|CALL|UP)\b/.test(s) ? "ACHAT" : /\b(SELL|SHORT|VENTE|PUT|DOWN)\b/.test(s) ? "VENTE" : "";
-  function numk(k) { var m = s.match(new RegExp(k + "\\s*[:=]?\\s*([0-9]+[.,]?[0-9]*)")); return m ? parseFloat(m[1].replace(",", ".")) : null; }
-  var ent = (s.match(/(?:BUY|SELL|LONG|SHORT|ACHAT|VENTE|ENTRY)\s*[:@]?\s*([0-9]+[.,]?[0-9]*)/) || [])[1];
-  var tp = numk("TP"), sl = numk("SL");
-  return { pair: pair, side: side, tp: tp, sl: sl, entry: ent ? parseFloat(ent.replace(",", ".")) : null, timeTrade: /\b\d+\s*(M|MIN|S|SEC)\b/.test(s) && !tp };
-}
-$("sigGo").addEventListener("click", function () {
-  var t = $("sig").value.trim(), o = $("sigOut");
-  o.hidden = false;
-  if (!t) { o.innerHTML = "<b>SENTRY ›</b> Colle un signal d'abord."; return; }
-  var p = parseSignal(t), iss = [];
-  if (!p.pair) iss.push("paire introuvable");
-  if (!p.side) iss.push("sens introuvable");
-  if (p.timeTrade) iss.push("option binaire à durée fixe, on y touche pas");
-  if (!p.sl && !p.timeTrade) iss.push("pas de stop-loss");
-  var rr = "";
-  if (p.entry && p.tp && p.sl) {
-    var r = Math.abs(p.tp - p.entry) / Math.abs(p.entry - p.sl);
-    rr = " Gain/risque : " + r.toFixed(2).replace(".", ",") + ".";
-    if (r < 1.5) iss.push("gain/risque trop bas");
+function renderHeat() {
+  var byDay = {}; trades.forEach(function (x) { var k = x.t.slice(0, 10); byDay[k] = (byDay[k] || 0) + x.ret; });
+  var end = new Date(trades[trades.length - 1].t); end.setUTCHours(12, 0, 0, 0);
+  var hm = $("hm"); hm.innerHTML = "";
+  for (var i = 0; i < 91; i++) {
+    var dt = new Date(+end - (90 - i) * DAY), key = dt.toISOString().slice(0, 10), v = byDay[key], col = Math.floor(i / 7), row = i % 7;
+    var fill = "var(--panel2)", op = 1;
+    if (v != null) { fill = v >= 0 ? "var(--gain)" : "var(--loss)"; op = 0.25 + 0.75 * Math.min(1, Math.abs(v) / 0.025); }
+    var rc = el("rect", { x: 3 + col * 27, y: 3 + row * 27, width: 24, height: 24, rx: 4, fill: fill, "fill-opacity": op, "data-k": key, "data-v": v == null ? "" : v });
+    rc.addEventListener("click", function () {
+      var kv = this.getAttribute("data-v"), kk = this.getAttribute("data-k");
+      $("hmLabel").textContent = dShort(kk + "T12:00:00Z") + " : " + (kv === "" ? "aucun trade" : pct(parseFloat(kv), 2));
+    });
+    hm.appendChild(rc);
   }
-  if (killOn) iss.push("interrupteur d'urgence activé");
-  var msg = iss.length ? "Mis de côté : " + iss.join(", ") + "." + rr : p.side + " " + p.pair + " accepté en papier." + rr;
-  o.innerHTML = "";
-  var b = document.createElement("b"); b.textContent = (iss.length ? "SENTRY" : "PULSE") + " › ";
-  o.appendChild(b); o.appendChild(document.createTextNode(msg));
-  o.style.borderLeftColor = iss.length ? "var(--guard)" : "var(--gain)";
-  sendMsg(AG.SENTRY, iss.length ? AG.CARO : AG.PULSE, (p.pair || "Signal") + " : " + msg, iss.length > 0);
-  $("sig").value = "";
-});
+  var best = null, worst = null;
+  Object.keys(byDay).forEach(function (k) { if (best == null || byDay[k] > byDay[best]) best = k; if (worst == null || byDay[k] < byDay[worst]) worst = k; });
+  $("hmLabel").textContent = "Meilleur jour : " + dShort(best + "T12:00:00Z") + " (" + pct(byDay[best], 2) + "). Pire jour : " + dShort(worst + "T12:00:00Z") + " (" + pct(byDay[worst], 2) + ").";
+}
 function renderRisk() {
   var lastDay = trades[trades.length - 1].t.slice(0, 10);
   var today = trades.filter(function (x) { return x.t.slice(0, 10) === lastDay; }).reduce(function (a, x) { return a + x.ret; }, 0);
@@ -1493,12 +1884,13 @@ function renderRisk() {
   $("killTxt").textContent = killOn ? "Bots à l'arrêt, plus aucun ordre" : "Bots actifs";
   var pill = $("killPill"); pill.textContent = killOn ? "Arrêt d'urgence" : "Bots actifs"; pill.classList.toggle("on", killOn);
 }
-$("kill").addEventListener("click", function () {
-  killOn = !killOn; store("bb_kill", killOn ? "1" : "0");
+function setKill(on) {
+  killOn = !!on; store("bb_kill", killOn ? "1" : "0");
   renderRisk(); renderBots();
   sendMsg(AG.PULSE, AG.CARO, killOn ? "Interrupteur d'urgence activé : tous les bots arrêtés" : "Interrupteur désactivé, les bots peuvent reprendre", killOn);
-  toast(killOn ? "Arrêt d'urgence activé (affichage)" : "Arrêt d'urgence désactivé");
-});
+  return killOn ? "Interrupteur d'urgence activé : tous les bots sont arrêtés à l'écran." : "Interrupteur désactivé.";
+}
+$("kill").addEventListener("click", function () { toast(setKill(!killOn)); });
 function simulate(rs, risk, sd) {
   var r = rng(sd), P = 300, NN = 100, paths = [], maxdds = [], finals = [];
   for (var i = 0; i < P; i++) {
@@ -1514,17 +1906,14 @@ function simulate(rs, risk, sd) {
   return { paths: paths, bands: bands, pWin: finals.filter(function (v) { return v > 1; }).length / P, pDD: maxdds.filter(function (v) { return v > 0.2; }).length / P, med: bands[1][NN] - 1 };
 }
 function renderLab() {
-  var rs = trades.map(function (x) { return x.ret / 0.01; });
-  var sim = simulate(rs, mcRisk / 100, mcSeed);
+  var sim = simulate(trades.map(function (x) { return x.ret / 0.01; }), mcRisk / 100, mcSeed);
   $("mcRiskV").textContent = num(mcRisk, 1) + " %";
   var W = 360, H = 210, P = 6, NN = 100;
   var mx = Math.max(sim.bands[2][NN] * 1.05, 1.2), mn = Math.min(Math.min.apply(null, sim.bands[0]) * 0.95, 0.8);
   var X = function (i) { return P + (W - 2 * P) * i / NN; }, Y = function (v) { return H - P - (H - 2 * P) * (Math.min(v, mx) - mn) / (mx - mn); };
   var svg = $("fan"); svg.innerHTML = "";
   svg.appendChild(el("line", { x1: P, x2: W - P, y1: Y(1), y2: Y(1), stroke: "var(--line)", "stroke-dasharray": "3 4" }));
-  for (var k = 0; k < 14; k++) {
-    svg.appendChild(el("path", { d: sim.paths[k].map(function (v, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); }).join(""), fill: "none", stroke: "var(--muted)", "stroke-opacity": ".28", "stroke-width": "1" }));
-  }
+  for (var k = 0; k < 14; k++) svg.appendChild(el("path", { d: sim.paths[k].map(function (v, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); }).join(""), fill: "none", stroke: "var(--muted)", "stroke-opacity": ".28", "stroke-width": "1" }));
   var up = sim.bands[2].map(function (v, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); }).join("");
   var dn = sim.bands[0].map(function (v, i) { return "L" + X(NN - i).toFixed(1) + " " + Y(sim.bands[0][NN - i]).toFixed(1); }).join("");
   svg.appendChild(el("path", { d: up + dn + "Z", fill: "var(--cmd)", "fill-opacity": ".18" }));
@@ -1544,8 +1933,6 @@ function renderScout() {
   var top = s.wins.slice().sort(function (a, b) { return b.ret - a.ret; }).slice(0, 3).reduce(function (a, x) { return a + x.ret; }, 0);
   var share = s.gw ? top / s.gw : 0;
   if (share > 0.3) out.push(["warn", "Tes 3 meilleurs trades font " + Math.round(share * 100) + " % de tous les gains. Sans eux, la stratégie s'effondre."]);
-  var rec = trades.slice(-20), ra = rec.reduce(function (a, x) { return a + x.r; }, 0) / rec.length;
-  if (trades.length >= 40 && ra < s.avgR * 0.5) out.push(["warn", "Tes 20 derniers trades rapportent " + num(ra, 2) + " R en moyenne, contre " + num(s.avgR, 2) + " R sur la période."]);
   var hi = trades.filter(function (x) { return x.score != null && x.score >= 4; }), lo = trades.filter(function (x) { return x.score != null && x.score < 4; });
   if (hi.length >= 8 && lo.length >= 8) {
     var a = hi.reduce(function (m, x) { return m + x.r; }, 0) / hi.length, b = lo.reduce(function (m, x) { return m + x.r; }, 0) / lo.length;
@@ -1555,29 +1942,21 @@ function renderScout() {
   if (trades.length < 100) out.push(["bad", "Seulement " + trades.length + " trades. C'est trop peu pour conclure que la stratégie est fiable."]);
   $("scout").innerHTML = out.slice(0, 5).map(function (x) { return '<div class="ins ' + x[0] + '"><i></i><p>' + x[1] + '</p></div>'; }).join("");
 }
-function renderTrading() {
-  renderEquity(); renderTStats(); renderBots(); renderSignalScore(); renderRisk(); renderLab(); renderScout();
-  $("demoBanner").hidden = !isDemo;
-}
-Array.prototype.forEach.call(document.querySelectorAll("#rangeChips .chip"), function (c) {
+function renderDiag() { renderEquity(); renderTStats(); renderMonthly(); renderHeat(); renderRisk(); renderLab(); renderScout(); $("demoBanner").hidden = !isDemo; }
+$$("#rangeChips .chip").forEach(function (c) {
   c.addEventListener("click", function () {
     range = c.getAttribute("data-r") === "all" ? "all" : parseInt(c.getAttribute("data-r"), 10);
-    Array.prototype.forEach.call(document.querySelectorAll("#rangeChips .chip"), function (x) { x.setAttribute("aria-pressed", String(x === c)); });
+    $$("#rangeChips .chip").forEach(function (x) { x.setAttribute("aria-pressed", String(x === c)); });
     renderEquity();
   });
 });
 $("mcRisk").addEventListener("input", function (e) { mcRisk = parseFloat(e.target.value); renderLab(); });
 $("mcAgain").addEventListener("click", function () { mcSeed = Math.floor(Math.random() * 1e6); renderLab(); toast("Nouvelle simulation lancée"); });
 $("impGo").addEventListener("click", function () {
-  try {
-    var t = parseTrades($("impTxt").value);
-    trades = t; isDemo = false; store("bb_trades", $("impTxt").value);
-    firstDraw = true; renderTrading(); toast(t.length + " trades chargés");
-  } catch (e) { toast("Import impossible : " + (e && e.message ? e.message : "JSON invalide")); }
+  try { var t = parseTrades($("impTxt").value); trades = t; isDemo = false; store("bb_trades", $("impTxt").value); firstDraw = true; renderDiag(); toast(t.length + " trades chargés"); }
+  catch (e) { toast("Import impossible : " + (e && e.message ? e.message : "JSON invalide")); }
 });
-$("impDemo").addEventListener("click", function () {
-  drop("bb_trades"); trades = genDemo(); isDemo = true; $("impTxt").value = ""; firstDraw = true; renderTrading(); toast("Retour aux données de démo");
-});
+$("impDemo").addEventListener("click", function () { drop("bb_trades"); trades = genDemo(); isDemo = true; $("impTxt").value = ""; firstDraw = true; renderDiag(); toast("Retour aux données de démo"); });
 
 /* ============================================================
    WALLET
@@ -1585,16 +1964,8 @@ $("impDemo").addEventListener("click", function () {
 var wallet = null;
 function short(a) { return a.slice(0, 4) + "…" + a.slice(-4); }
 function showWallet(a) {
-  var b = $("connectBtn");
-  if (a) {
-    $("wState").innerHTML = '<span class="dot live"></span>Phantom connecté';
-    $("wAddr").textContent = short(a) + " sur Solana. Lecture seule.";
-    b.textContent = "Déconnecter";
-  } else {
-    $("wState").innerHTML = '<span class="dot"></span>Non connecté';
-    $("wAddr").textContent = "Connexion en lecture seule. Aucune signature n'est demandée.";
-    b.textContent = "Connecter Phantom";
-  }
+  if (a) { $("wState").innerHTML = '<span class="dot live"></span>Phantom connecté'; $("wAddr").textContent = short(a) + " sur Solana. Lecture seule."; $("connectBtn").textContent = "Déconnecter"; }
+  else { $("wState").innerHTML = '<span class="dot"></span>Non connecté'; $("wAddr").textContent = "Connexion en lecture seule. Aucune signature n'est demandée."; $("connectBtn").textContent = "Connecter Phantom"; }
   renderLinks();
 }
 function provider() { try { var p = (window.phantom && window.phantom.solana) || window.solana; return p && p.isPhantom ? p : null; } catch (e) { return null; } }
@@ -1602,13 +1973,10 @@ $("connectBtn").addEventListener("click", function () {
   var p = provider();
   if (wallet && p) { try { p.disconnect(); } catch (e) {} wallet = null; showWallet(null); toast("Portefeuille déconnecté"); return; }
   if (!p) { toast("Phantom est introuvable. Ouvre l'application dans le navigateur intégré de l'app Phantom."); return; }
-  p.connect().then(function (r) {
-    wallet = r.publicKey.toString(); showWallet(wallet); toast("Phantom connecté");
-    sendMsg(AG.VAULT, AG.CARO, "Phantom connecté en lecture seule : " + short(wallet));
-  }).catch(function () { toast("Connexion refusée dans Phantom"); });
+  p.connect().then(function (r) { wallet = r.publicKey.toString(); showWallet(wallet); toast("Phantom connecté"); sendMsg(AG.VAULT, AG.CARO, "Phantom connecté en lecture seule : " + short(wallet)); })
+    .catch(function () { toast("Connexion refusée dans Phantom"); });
 });
 try { var pp = provider(); if (pp && pp.connect) pp.connect({ onlyIfTrusted: true }).then(function (r) { wallet = r.publicKey.toString(); showWallet(wallet); }).catch(function () {}); } catch (e) {}
-
 // Remplis seulement avec TES adresses publiques. Jamais de phrase secrète ni de clé privée ici.
 var PAY = {
   crypto: [
@@ -1620,34 +1988,23 @@ var PAY = {
 function copyBtn(btn, text) {
   btn.addEventListener("click", function () {
     function ok() { btn.textContent = "Copié"; btn.classList.add("ok"); setTimeout(function () { btn.textContent = btn.dataset.label; btn.classList.remove("ok"); }, 1600); }
-    try { navigator.clipboard.writeText(text).then(ok, function () { btn.textContent = "Sélectionne le texte"; }); }
-    catch (e) { btn.textContent = "Sélectionne le texte"; }
+    try { navigator.clipboard.writeText(text).then(ok, function () { btn.textContent = "Sélectionne le texte"; }); } catch (e) { btn.textContent = "Sélectionne le texte"; }
   });
 }
 function payCard(cls, title, net, value, valid, note, qrText) {
   var c = document.createElement("article");
   c.className = "pcard " + cls;
   c.innerHTML = '<div class="t2"><h3></h3><span class="net"></span></div><div class="addr"></div><p class="note"></p><div class="pacts"><button class="ghost" type="button" data-label="Copier">Copier</button>' + (qrText !== null ? '<button class="ghost qrb" type="button">Code QR</button>' : '') + '</div><div class="qr" hidden></div>';
-  c.querySelector("h3").textContent = title;
-  c.querySelector(".net").textContent = net;
-  c.querySelector(".note").textContent = note;
+  c.querySelector("h3").textContent = title; c.querySelector(".net").textContent = net; c.querySelector(".note").textContent = note;
   var addr = c.querySelector(".addr"), copy = c.querySelector("[data-label]"), qrb = c.querySelector(".qrb");
-  if (!value) {
-    addr.textContent = "À ajouter : donne-la à Claude pour la publier ici";
-    addr.classList.add("empty"); copy.disabled = true; if (qrb) qrb.disabled = true;
-  } else if (!valid) {
-    addr.textContent = value + "  ← format invalide, ne pas utiliser";
-    addr.classList.add("bad"); copy.disabled = true; if (qrb) qrb.disabled = true;
-  } else {
-    addr.textContent = value;
-    copyBtn(copy, value);
+  if (!value) { addr.textContent = "À ajouter : donne-la à Claude pour la publier ici"; addr.classList.add("empty"); copy.disabled = true; if (qrb) qrb.disabled = true; }
+  else if (!valid) { addr.textContent = value + "  ← format invalide, ne pas utiliser"; addr.classList.add("bad"); copy.disabled = true; if (qrb) qrb.disabled = true; }
+  else {
+    addr.textContent = value; copyBtn(copy, value);
     if (qrb) qrb.addEventListener("click", function () {
       var bx = c.querySelector(".qr");
       if (!bx.hidden) { bx.hidden = true; qrb.textContent = "Code QR"; return; }
-      if (!bx.firstChild) {
-        if (typeof QRCode === "undefined") bx.textContent = "Code QR indisponible";
-        else new QRCode(bx, { text: qrText, width: 168, height: 168, colorDark: "#06080d", colorLight: "#e4ecff", correctLevel: QRCode.CorrectLevel.M });
-      }
+      if (!bx.firstChild) { if (typeof QRCode === "undefined") bx.textContent = "Code QR indisponible"; else new QRCode(bx, { text: qrText, width: 168, height: 168, colorDark: "#06080d", colorLight: "#e4ecff", correctLevel: QRCode.CorrectLevel.M }); }
       bx.hidden = false; qrb.textContent = "Cacher le QR";
     });
   }
@@ -1660,58 +2017,244 @@ function payCard(cls, title, net, value, valid, note, qrText) {
   grid.appendChild(payCard("c-interac", "Virement Interac", "Banques canadiennes", mail, /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail),
     "Dans l'app de ta banque : Virement Interac, puis ce courriel" + (PAY.interac.nom ? ", au nom de " + PAY.interac.nom : "") + ". Le dépôt automatique évite la question de sécurité.", null));
 })();
-
 function renderLinks() {
   var L = [
-    ["Phantom (Solana)", "Lecture seule, depuis cet onglet", wallet ? ["ok", "Connecté"] : ["todo", "À connecter"]],
+    ["Phantom (Solana)", "Lecture seule, depuis cette page", wallet ? ["ok", "Connecté"] : ["todo", "À connecter"]],
+    ["Gemini", "Vrais prix pour les graphiques, lecture seule", liveAt ? ["ok", "Actif"] : ["todo", "Onglet Graphiques"]],
+    ["Agent vocal CARO", "Bouton CARO en bas à droite", voiceMode === "ia" ? ["ok", "IA active"] : voiceMode === "local" ? ["todo", "Mode simple"] : ["todo", "À essayer"]],
     ["Bot Telegram CARO", "Code prêt dans GitHub, à lancer", ["todo", "À lancer"]],
-    ["TradingView", "Script d'indicateurs prêt (onglet Plus)", ["ok", "Prêt"]],
+    ["TradingView", "Script d'indicateurs prêt (onglet Graphiques)", ["ok", "Prêt"]],
     ["3Commas", "Lecture seule via CARO, clé à ajouter", ["todo", "Clé requise"]],
     ["Ollama (secours)", "Cerveau de secours de CARO, clé à ajouter", ["todo", "Clé requise"]],
-    ["API Claude", "Le cerveau de CARO", ["todo", "Clé requise"]],
-    ["Gemini, Etherscan", "Branchés dans tes conversations avec Claude", ["ok", "Actifs"]],
+    ["Etherscan", "Branché dans tes conversations avec Claude", ["ok", "Actif"]],
     ["Bitget", "Pas encore branché", ["off", "Plus tard"]]
   ];
-  $("links").innerHTML = L.map(function (r) {
-    return '<div class="lrow"><div><b>' + r[0] + '</b><small>' + r[1] + '</small></div><span class="st ' + r[2][0] + '">' + r[2][1] + '</span></div>';
-  }).join("");
+  $("links").innerHTML = L.map(function (r) { return '<div class="lrow"><div><b>' + r[0] + '</b><small>' + r[1] + '</small></div><span class="st ' + r[2][0] + '">' + r[2][1] + '</span></div>'; }).join("");
 }
 
 /* ============================================================
-   PLUS
+   ÉQUIPE : portraits (repris de Projet Black Box)
    ============================================================ */
-copyBtn($("copyPine"), $("pineCode").textContent);
+function antenna(type, c) {
+  var s = 'stroke="' + c + '" stroke-width="2.4" stroke-linecap="round" fill="none"';
+  switch (type) {
+    case "v": return '<path d="M53 28L45 9M67 28L75 9" ' + s + '/><circle cx="45" cy="8" r="3" fill="' + c + '"/><circle cx="75" cy="8" r="3" fill="' + c + '"/>';
+    case "hook": return '<path d="M60 27V13Q60 6 69 9" ' + s + '/><circle cx="70" cy="9.5" r="3" fill="' + c + '"/>';
+    case "clock": return '<path d="M60 27V17" ' + s + '/><circle cx="60" cy="10" r="7" ' + s + '/><path d="M60 10V6M60 10L63 12" stroke="' + c + '" stroke-width="1.6" stroke-linecap="round"/>';
+    case "lens": return '<path d="M60 27V19" ' + s + '/><circle cx="60" cy="11" r="7" ' + s + '/>';
+    case "reddot": return '<path d="M60 27V15" ' + s + '/><circle cx="60" cy="11" r="3.6" fill="#ff3b3b"/>';
+    case "hammer": return '<path d="M60 27V11" ' + s + '/><rect x="51" y="4" width="18" height="8" rx="1.5" fill="' + c + '"/>';
+    case "prism": return '<path d="M60 27V19" ' + s + '/><path d="M60 3L70 19H50Z" ' + s + '/>';
+    case "lock": return '<path d="M60 27V19" ' + s + '/><rect x="53" y="10" width="14" height="9" rx="2" fill="' + c + '"/><path d="M56 10V7Q56 3 60 3Q64 3 64 7V10" ' + s + '/>';
+    case "net": return '<path d="M60 27V16M60 16L48 9M60 16L72 9" ' + s + '/><circle cx="60" cy="14" r="3" fill="' + c + '"/><circle cx="47" cy="8" r="3" fill="' + c + '"/><circle cx="73" cy="8" r="3" fill="' + c + '"/>';
+    case "dollar": return '<path d="M60 27V17" ' + s + '/><circle cx="60" cy="10" r="8" ' + s + '/><text x="60" y="14.5" text-anchor="middle" font-size="12" font-weight="700" fill="' + c + '">$</text>';
+    case "rings": return '<path d="M60 27V16" ' + s + '/><circle cx="60" cy="11" r="3" fill="' + c + '"/><circle cx="60" cy="11" r="7" stroke="' + c + '" stroke-width="1.5" fill="none" opacity=".7"/>';
+    case "shield": return '<path d="M60 27V21" ' + s + '/><path d="M51 4H69V12Q69 19 60 23Q51 19 51 12Z" fill="' + c + '" opacity=".9"/>';
+    case "radar": return '<path d="M60 27V15" ' + s + '/><path d="M49 13Q60 1 71 13" ' + s + '/><circle cx="60" cy="12" r="2.6" fill="' + c + '"/>';
+    case "key": return '<path d="M60 27V15" ' + s + '/><circle cx="60" cy="9" r="5.5" ' + s + '/>';
+  }
+  return '<path d="M60 27V10" ' + s + '/><circle cx="60" cy="8" r="3.4" fill="' + c + '"/>';
+}
+function eyesSvg(type, c) {
+  switch (type) {
+    case "visor": return '<rect x="39" y="52" width="42" height="10" rx="5" fill="#05070d" stroke="' + c + '" stroke-width="1.5"/><rect x="43" y="55" width="34" height="4" rx="2" fill="' + c + '"/>';
+    case "nv": return '<circle cx="50" cy="57" r="6.5" fill="#05070d" stroke="' + c + '" stroke-width="1.6"/><circle cx="70" cy="57" r="6.5" fill="#05070d" stroke="' + c + '" stroke-width="1.6"/><circle cx="50" cy="57" r="2.8" fill="' + c + '"/><circle cx="70" cy="57" r="2.8" fill="' + c + '"/>';
+    case "beam": return '<ellipse cx="50" cy="57" rx="5" ry="3.2" fill="#fff"/><ellipse cx="70" cy="57" rx="5" ry="3.2" fill="#fff"/><circle cx="50" cy="57" r="2.4" fill="' + c + '"/><circle cx="70" cy="57" r="2.4" fill="' + c + '"/>';
+  }
+  return '<ellipse cx="50" cy="57" rx="4.6" ry="3.2" fill="#fff"/><ellipse cx="70" cy="57" rx="4.6" ry="3.2" fill="#fff"/><circle cx="50.6" cy="57" r="2.4" fill="' + c + '"/><circle cx="70.6" cy="57" r="2.4" fill="' + c + '"/>';
+}
+function portrait(a) {
+  var c = helm(a);
+  var hair = a.hair ? '<path d="M35 55Q31 82 38 98L45 96Q41 78 43 58Z M85 55Q89 82 82 98L75 96Q79 78 77 58Z" fill="#1a1230" stroke="' + c + '" stroke-width="1"/>' : "";
+  return '<svg viewBox="0 0 120 120" role="img" aria-label="Portrait de ' + a.id + '"><rect x="1" y="1" width="118" height="118" fill="#0a1020" stroke="' + c + '" stroke-opacity=".5"/>' +
+    '<path d="M16 120Q20 92 60 90Q100 92 104 120Z" fill="#111a30" stroke="' + c + '" stroke-width="1.4"/><rect x="52" y="78" width="16" height="14" fill="' + a.skin + '" opacity=".85"/>' + hair +
+    '<ellipse cx="60" cy="58" rx="23" ry="27" fill="' + a.skin + '"/><path d="M36 58Q35 26 60 26Q85 26 84 58L80 50Q60 38 40 50Z" fill="' + c + '"/>' +
+    '<rect x="30" y="50" width="8" height="20" rx="3" fill="' + c + '"/><rect x="82" y="50" width="8" height="20" rx="3" fill="' + c + '"/>' +
+    eyesSvg(a.eyes, c) + '<path d="M54 74Q60 77 66 74" stroke="#2a1410" stroke-width="2" stroke-linecap="round" fill="none"/>' + antenna(a.ant, c) + '</svg>';
+}
+function renderPortraits() {
+  var root = $("portraits"); root.innerHTML = "";
+  GROUPS.forEach(function (g) {
+    var h = document.createElement("div"); h.className = "group-h c-" + g.id; h.style.margin = "14px 0 8px"; h.textContent = g.name; root.appendChild(h);
+    var grid = document.createElement("div"); grid.className = "pgrid"; root.appendChild(grid);
+    AGENTS.filter(function (a) { return a.g === g.id; }).forEach(function (a) {
+      var c = document.createElement("article"); c.className = "pc c-" + a.g;
+      c.innerHTML = portrait(a) + '<div style="min-width:0"><div class="nm"></div><div class="rl"></div><p></p><div class="tl"></div></div>';
+      c.querySelector(".nm").textContent = a.id; c.querySelector(".rl").textContent = a.r; c.querySelector("p").textContent = a.d;
+      a.t.forEach(function (x) { var s = document.createElement("span"); s.textContent = x; c.querySelector(".tl").appendChild(s); });
+      grid.appendChild(c);
+    });
+  });
+}
 
 /* ============================================================
-   ONGLETS ET DÉMARRAGE
+   AGENT VOCAL CARO
    ============================================================ */
-var TABS = ["qg", "trading", "wallet", "plus"];
+var voiceBusy = false, voiceMode = "", sampleNS = null, sampleTried = false, convo = [];
+var PAGES = { salle: "salle", bots: "salle", graphiques: "graph", graph: "graph", diagnostics: "diag", diag: "diag", wallet: "wallet", plus: "plus", equipe: "equipe", "équipe": "equipe", parametres: "reglages", "paramètres": "reglages", reglages: "reglages", telegram: "telegram" };
+var PAGE_NAMES = { salle: "la salle", graph: "les graphiques", diag: "les diagnostics", wallet: "le wallet", plus: "Plus", equipe: "l'équipe", reglages: "les paramètres", telegram: "CARO sur Telegram" };
+var pendingBubble = null;
+function act(text) { var d = addBubble("act", "▸ " + text); if (pendingBubble && pendingBubble.parentNode) pendingBubble.parentNode.insertBefore(d, pendingBubble); }
+var VTOOLS = [
+  { name: "aller_a_page", description: "Ouvre une page de l'application. Pages : salle, graphiques, diagnostics, wallet, plus, equipe, parametres, telegram. Retourne la page ouverte.",
+    inputSchema: { type: "object", properties: { page: { type: "string", enum: ["salle", "graphiques", "diagnostics", "wallet", "plus", "equipe", "parametres", "telegram"] } }, required: ["page"] },
+    execute: function (i) { var p = PAGES[String(i.page).toLowerCase()]; if (!p) throw new Error("Page inconnue"); showTab(p); act("Page : " + PAGE_NAMES[p]); return "Page ouverte : " + PAGE_NAMES[p]; } },
+  { name: "lancer_mission", description: "Lance une mission animée de l'équipe dans la salle. ids : signal, crypto, token, bots, minage, semaine, secu, post.",
+    inputSchema: { type: "object", properties: { id: { type: "string", enum: MISSION_IDS } }, required: ["id"] },
+    execute: function (i) { var m = MISSIONS.filter(function (x) { return x.id === String(i.id); })[0]; if (!m) throw new Error("Mission inconnue"); showTab("salle"); runMission(m); act("Mission : " + m.label); return "Mission lancée : " + m.label; } },
+  { name: "lire_marche", description: "Lit le graphique actuel : prix, tendance, RSI, MACD, écart à l'EMA 200, score sur 5 et dernier signal. Peut d'abord changer de symbole (BTCUSD, ETHUSD, SOLUSD) et d'intervalle (15m, 1hr, 6hr, 1day). Retourne un résumé.",
+    inputSchema: { type: "object", properties: { symbole: { type: "string", enum: ["BTCUSD", "ETHUSD", "SOLUSD"] }, intervalle: { type: "string", enum: ["15m", "1hr", "6hr", "1day"] } } },
+    execute: function (i) {
+      var sym = i.symbole ? String(i.symbole) : null, tf = i.intervalle ? String(i.intervalle) : null;
+      showTab("graph");
+      return setChart(sym, tf, true).then(function () { act("Graphique : " + chartSym + " " + chartTf); var s = marketSummary(); return JSON.stringify({ symbole: s.symbole, intervalle: s.intervalle, source: s.source, prix: s.prix, tendance: s.tendance, rsi: s.rsi, macd_au_dessus_signal: s.macd_au_dessus_signal, ecart_ema200_pct: s.ecart_ema200_pct, score_sur_5: s.score, dernier_signal: s.dernier_signal }); });
+    } },
+  { name: "etat_diagnostics", description: "Retourne les résultats de trading en papier : rendement, % gagnants, facteur de profit, baisse maximale, rendement par mois. Données de démo tant que l'utilisateur n'a pas importé ses trades.",
+    execute: function () { var s = tstats(trades); act("Lecture des diagnostics"); return JSON.stringify({ demo: isDemo, rendement_pct: +(s.total * 100).toFixed(1), gagnants_pct: Math.round(s.wr * 100), facteur_profit: isFinite(s.pf) ? +s.pf.toFixed(2) : null, baisse_max_pct: +(s.mdd * 100).toFixed(1), trades: s.n, par_mois: monthly().map(function (m) { return { mois: m.label, rendement_pct: +(m.ret * 100).toFixed(1), trades: m.n }; }) }); } },
+  { name: "etat_bots", description: "Retourne la liste des bots du garage, leur état (actif ou en pause) et l'état de l'interrupteur d'urgence. Données de démo.",
+    execute: function () { act("Lecture du garage"); return JSON.stringify({ interrupteur_urgence: killOn, bots: BOTS.map(function (b) { return { nom: b.n, actif: b.on && !killOn, resultat_semaine_pct: b.pnl }; }) }); } },
+  { name: "piloter_bot", description: "Démarre ou met en pause un bot du garage (affichage seulement, aucun ordre réel). nom : SolUT, Paper, Signal TV ou PocketSignals.",
+    inputSchema: { type: "object", properties: { nom: { type: "string" }, actif: { type: "boolean" } }, required: ["nom", "actif"] },
+    execute: function (i) { var r = setBot(String(i.nom), !!i.actif); act(r); return r; } },
+  { name: "interrupteur_urgence", description: "Active (true) ou désactive (false) l'interrupteur d'urgence qui arrête tous les bots à l'écran.",
+    inputSchema: { type: "object", properties: { actif: { type: "boolean" } }, required: ["actif"] },
+    execute: function (i) { var r = setKill(!!i.actif); act(r); return r; } },
+  { name: "verifier_signal", description: "Fait vérifier par SENTRY un signal de trading en texte (ex. SOL/USDT BUY 176.20 TP 182 SL 172). Retourne le verdict.",
+    inputSchema: { type: "object", properties: { texte: { type: "string" } }, required: ["texte"] },
+    execute: function (i) { showTab("salle"); var r = checkSignal(String(i.texte)); act("Signal vérifié par SENTRY"); return r; } },
+  { name: "changer_apparence", description: "Change l'apparence. couleur : citron, cyan, magenta, matrix, ambre, violet. fond : nuit, marine, mauve, charbon. tenue des agents : equipe, or, furtif, arc, accent.",
+    inputSchema: { type: "object", properties: { couleur: { type: "string", enum: ACCENTS.map(function (x) { return x[0]; }) }, fond: { type: "string", enum: BGS.map(function (x) { return x[0]; }) }, tenue: { type: "string", enum: OUTFITS.map(function (x) { return x[0]; }) } } },
+    execute: function (i) { if (i.couleur) SET.accent = String(i.couleur); if (i.fond) SET.bg = String(i.fond); if (i.tenue) SET.outfit = String(i.tenue); applySettings(); act("Apparence changée"); return "Apparence changée"; } }
+];
+var SYS = "Tu es CARO, la tête de l'équipe Black Box, dans l'application Black Box de ton propriétaire (sur son iPhone). " +
+  "Tu parles en français québécois naturel, en 1 à 3 phrases courtes, en texte simple sans Markdown ni liste : ta réponse est lue à voix haute. " +
+  "Tu agis dans l'application avec tes outils dès que la demande s'y prête (ouvrir une page, lancer une mission, lire le marché, piloter un bot, l'interrupteur d'urgence, vérifier un signal, changer l'apparence), puis tu dis en une phrase ce que tu as fait ou ce que tu vois. " +
+  "Les bots et les résultats de trading sont en papier ou en démo : tu ne passes jamais d'ordre et tu ne donnes pas de conseil d'achat ou de vente ; tu décris les indicateurs. " +
+  "Si on te demande quelque chose qu'aucun outil ne fait (envoyer de l'argent, courriels, etc.), dis-le simplement et propose le bot Telegram CARO.";
+function stateLine() {
+  return "État de l'app : page « " + (PAGE_NAMES[currentTab] || currentTab) + " », interrupteur d'urgence " + (killOn ? "ACTIVÉ" : "désactivé") +
+    ", graphique " + chartSym + " " + chartTf + (liveAt ? " (Gemini en direct)" : " (démo)") + ", heure " + pad(new Date().getHours()) + ":" + pad(new Date().getMinutes()) + ".";
+}
+function addBubble(kind, text) {
+  var d = document.createElement("div"); d.className = "msg " + kind; d.textContent = text;
+  $("convo").appendChild(d); $("convo").scrollTop = $("convo").scrollHeight; return d;
+}
+function speak(text) {
+  if (!SET.voice || !text) return;
+  try {
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ""));
+    u.lang = "fr-CA";
+    var vs = speechSynthesis.getVoices().filter(function (v) { return /^fr(-|_)CA/i.test(v.lang); });
+    if (!vs.length) vs = speechSynthesis.getVoices().filter(function (v) { return /^fr/i.test(v.lang); });
+    if (vs.length) u.voice = vs[0];
+    u.rate = 1.05;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function getSample() {
+  if (sampleTried) return Promise.resolve(sampleNS);
+  sampleTried = true;
+  var p = window.claude && window.claude.use ? window.claude.use("sample") : Promise.resolve(null);
+  return p.then(function (s) {
+    if (!s) return null;
+    return (s.limits ? s.limits() : Promise.resolve({})).then(function (lim) { sampleNS = lim && lim.tools ? s : null; return sampleNS; }, function () { return null; });
+  }, function () { return null; });
+}
+// Mode simple, sans IA : mots-clés -> mêmes actions que les outils
+function localRoute(q) {
+  var s = q.toLowerCase(), r;
+  function tool(n, i) { return VTOOLS.filter(function (t) { return t.name === n; })[0].execute(i || {}); }
+  try {
+    if (/arr[êe]t|urgence|stop|coupe/.test(s)) return Promise.resolve(tool("interrupteur_urgence", { actif: !/d[ée]sactive|enl[eè]ve|repart|relance/.test(s) }));
+    if (/(buy|sell|long|short|achat|vente)\b.*\d/i.test(q)) return Promise.resolve("SENTRY dit : " + tool("verifier_signal", { texte: q }));
+    var sym = /\bbtc|bitcoin/.test(s) ? "BTCUSD" : /\beth|ether/.test(s) ? "ETHUSD" : /\bsol|solana/.test(s) ? "SOLUSD" : null;
+    if (sym || /graph|march[ée]|rsi|ema|macd|prix|indicateur/.test(s)) return tool("lire_marche", { symbole: sym || chartSym }).then(function (j) { var m = JSON.parse(j); return m.symbole + (m.source === "démo" ? " en démo, pas le vrai prix : " : " : ") + fmtP(m.prix) + " $ US, tendance " + m.tendance + ", RSI " + m.rsi + ", score " + m.score_sur_5 + " sur 5 (" + m.source + ")."; });
+    if (/diagnostic|rentab|profit|mois|r[ée]sultat|performance/.test(s)) { tool("aller_a_page", { page: "diagnostics" }); var st = tstats(trades); return Promise.resolve("Rendement " + pct(st.total) + ", " + Math.round(st.wr * 100) + " % de trades gagnants" + (isDemo ? ", en démo." : ".")); }
+    if (/wallet|portefeuille|phantom|paiement|virement/.test(s)) return Promise.resolve(tool("aller_a_page", { page: "wallet" }));
+    if (/param[èe]tre|couleur|th[èe]me|r[ée]glage/.test(s)) return Promise.resolve(tool("aller_a_page", { page: "parametres" }));
+    if (/[ée]quipe|portrait|agents/.test(s)) return Promise.resolve(tool("aller_a_page", { page: "equipe" }));
+    if (/bot|garage/.test(s)) { tool("lancer_mission", { id: "bots" }); return Promise.resolve("L'équipe regarde tes bots dans la salle."); }
+    if (/token|pump|rug/.test(s)) { tool("lancer_mission", { id: "token" }); return Promise.resolve("RADAR et SENTRY vérifient ça."); }
+    if (/min(age|eur)|gpu|carte/.test(s)) { tool("lancer_mission", { id: "minage" }); return Promise.resolve("ORBIT regarde tes cartes."); }
+    if (/semaine|agenda/.test(s)) { tool("lancer_mission", { id: "semaine" }); return Promise.resolve("KAREN prépare ta semaine."); }
+    if (/s[ée]curit|hack/.test(s)) { tool("lancer_mission", { id: "secu" }); return Promise.resolve("Les gardiens vérifient."); }
+    if (/salle/.test(s)) return Promise.resolve(tool("aller_a_page", { page: "salle" }));
+  } catch (e) { return Promise.resolve(e.message); }
+  return Promise.resolve("Je comprends pas encore ça en mode simple. Essaie : « montre-moi SOL », « arrête les bots » ou « mes diagnostics ».");
+}
+function ask(q) {
+  if (voiceBusy || !q) return;
+  voiceBusy = true; $("caroFab").classList.add("busy");
+  addBubble("me", q);
+  sendMsg(USER, AG.CARO, q.length > 70 ? q.slice(0, 70) + "…" : q);
+  var bubble = addBubble("caro", "…"); pendingBubble = bubble;
+  getSample().then(function (sample) {
+    if (!sample) { voiceMode = "local"; $("vmode").textContent = "mode simple"; return localRoute(q); }
+    voiceMode = "ia"; $("vmode").textContent = "IA";
+    var hist = convo.slice(-6).map(function (m) { return (m.role === "user" ? "Toi : " : "CARO : ") + m.content; }).join("\n");
+    var prompt = SYS + "\n\n" + stateLine() + (hist ? "\n\nConversation récente :\n" + hist : "") + "\n\nToi : " + q;
+    return sample(prompt, { tools: VTOOLS, modelTier: "quick", onText: function (u) { bubble.textContent = u.text || "…"; } }).then(function (res) { return res.text; })
+      .catch(function (e) {
+        if (e && (e.code === "not_granted" || e.code === "tools_unavailable")) { sampleNS = null; voiceMode = "local"; $("vmode").textContent = "mode simple"; return localRoute(q); }
+        if (e && e.code === "rate_limited") return "Je reçois trop de demandes, attends une minute.";
+        return (e && e.text) || "J'ai eu un problème pour répondre. Réessaie.";
+      });
+  }).then(function (text) {
+    text = String(text || "").trim() || "C'est fait.";
+    bubble.textContent = text;
+    convo.push({ role: "user", content: q }, { role: "assistant", content: text });
+    sendMsg(AG.CARO, USER, text.length > 70 ? text.slice(0, 70) + "…" : text);
+    speak(text); renderLinks();
+  }).then(function () { voiceBusy = false; $("caroFab").classList.remove("busy"); }, function () { voiceBusy = false; $("caroFab").classList.remove("busy"); });
+}
+var SUGG = ["Montre-moi SOL en 1 h", "Comment vont mes bots?", "Mes diagnostics du mois", "Arrête tous les bots", "Mets l'interface en magenta", "Vérifie : BTC/USDT BUY 64000 TP 66000 SL 63000"];
+SUGG.forEach(function (t) { var b = document.createElement("button"); b.type = "button"; b.textContent = t; b.addEventListener("click", function () { ask(t); }); $("sugg").appendChild(b); });
+function openSheet(on) {
+  $("sheet").hidden = !on; $("caroFab").setAttribute("aria-expanded", String(on));
+  if (on) {
+    if (!$("convo").children.length) addBubble("caro", "Salut! Je suis CARO. Dis-moi quoi faire : montrer un graphique, lire tes diagnostics, arrêter les bots, changer les couleurs…");
+    setTimeout(function () { $("vin").focus(); }, 50);
+  }
+}
+$("caroFab").addEventListener("click", function () { openSheet($("sheet").hidden); });
+$("sheetClose").addEventListener("click", function () { openSheet(false); });
+$("vform").addEventListener("submit", function (e) { e.preventDefault(); var q = $("vin").value.trim(); if (!q) return; $("vin").value = ""; ask(q); });
+
+/* ============================================================
+   NAVIGATION ET DÉMARRAGE
+   ============================================================ */
+var VIEWS = ["salle", "graph", "diag", "wallet", "plus", "equipe", "reglages", "telegram"];
+var NAVOF = { salle: "salle", graph: "graph", diag: "diag", wallet: "wallet", plus: "plus", equipe: "plus", reglages: "plus", telegram: "plus" };
 function showTab(id) {
-  if (TABS.indexOf(id) < 0) id = "qg";
+  if (VIEWS.indexOf(id) < 0) id = "salle";
   currentTab = id;
-  TABS.forEach(function (t) { $("v-" + t).hidden = t !== id; });
-  Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === id)); });
+  VIEWS.forEach(function (t) { $("v-" + t).hidden = t !== id; });
+  $$("nav.tabs button").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === NAVOF[id])); });
   store("bb_tab", id);
-  if (id === "trading") { firstDraw = true; renderEquity(); }
-  if (id === "qg") centerStage();
+  if (id === "diag") { firstDraw = true; renderEquity(); }
+  if (id === "graph") { initCharts(); if (charts) { drawCharts(); } if (!mcpTried) loadMarket(true); }
+  if (id === "salle") centerStage();
+  if (id === "equipe") renderPortraits();
+  window.scrollTo(0, 0);
 }
-Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) {
-  b.addEventListener("click", function () { showTab(b.getAttribute("data-tab")); window.scrollTo(0, 0); });
-});
+$$("nav.tabs button").forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-tab")); }); });
+$$("[data-go]").forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-go")); }); });
 function centerStage() { var s = $("scroller"); s.scrollLeft = (s.scrollWidth - s.clientWidth) / 2; }
+copyBtn($("copyPine"), $("pineCode").textContent);
 
 killOn = load("bb_kill") === "1";
 var saved = load("bb_trades");
-if (saved) { try { trades = parseTrades(saved); isDemo = false; $("impTxt").value = saved; } catch (e) { trades = genDemo(); } }
-else trades = genDemo();
-
+if (saved) { try { trades = parseTrades(saved); isDemo = false; $("impTxt").value = saved; } catch (e) { trades = genDemo(); } } else trades = genDemo();
+applySettings();
 buildStatic();
 select("CARO");
 setHud("En attente", 0);
-renderTrading();
-renderLinks();
+renderBots(); renderDiag(); renderLinks();
+setChart(null, null, false);
 var hashTab = (location.hash || "").replace("#", "");
-showTab(TABS.indexOf(hashTab) >= 0 ? hashTab : (load("bb_tab") || "qg"));
+showTab(VIEWS.indexOf(hashTab) >= 0 ? hashTab : (load("bb_tab") || "salle"));
+autoBtn.setAttribute("aria-pressed", String(SET.auto));
 requestAnimationFrame(frame);
 setTimeout(function () { runMission(MISSIONS[0]); }, 700);
 </script>
