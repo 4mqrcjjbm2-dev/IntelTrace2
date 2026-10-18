@@ -4,10 +4,13 @@
 |---|---|
 | `blackbox/app/` | **L'application Black Box** : la salle des bots (20 agents + garage + signaux), les graphiques avec les indicateurs du script CARO, les diagnostics (rentabilité par mois, risque, simulation), le wallet, l'équipe en portraits, les paramètres, et CARO, l'agent vocal qui pilote l'app |
 | `blackbox/academie/` | **Académie CARO** : comprendre un agent IA et la route pour bâtir CARO |
+| `caro_bot/web/` | L'application servie par ton serveur Railway (reconstruite par `sh caro_bot/web/build.sh` à partir de `blackbox/app/source.html`) |
 | `caro_bot/` | **CARO sur Telegram** : le vrai assistant (Claude, mémoire, prix crypto, web, rappels, 3Commas, secours Ollama) |
 | `tradingview/` | **Script d'indicateurs TradingView** (Pine Script v6) |
 
 ## Ouvrir l'application
+
+- **En vrai, avec ta base de données et tes bots :** suis `DEMARRAGE.md` (Railway).
 
 - En ligne : https://claude.ai/artifact/ALcZCUuRDjgj14BKbZCwZH
 - Sur ton ordinateur : ouvre `blackbox/app/index.html` dans un navigateur.

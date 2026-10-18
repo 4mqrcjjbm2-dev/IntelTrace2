@@ -1,4 +1,6 @@
-# CARO sur Telegram
+# CARO sur Telegram et l'application Black Box
+
+> Pour la mise en ligne pas à pas, suis `DEMARRAGE.md` à la racine du dépôt.
 
 CARO est ton assistant personnel dans Telegram. Il est propulsé par Claude et ne répond qu'à toi.
 
@@ -43,8 +45,10 @@ cd caro_bot
 python3 -m venv .venv
 source .venv/bin/activate        # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
-python bot.py
+python main.py
 ```
+
+L'application web est alors sur http://localhost:8080 (mot de passe : `APP_PASSWORD`). Pour le bot Telegram seul : `python bot.py`.
 
 CARO répond tant que ton ordinateur est allumé et que la commande tourne.
 
@@ -53,7 +57,7 @@ CARO répond tant que ton ordinateur est allumé et que la commande tourne.
 1. Crée un compte sur [railway.com](https://railway.com). Le forfait de base coûte environ 5 $ US par mois ; vérifie leur page de prix.
 2. **New Project → Deploy from GitHub repo**, puis choisis `IntelTrace2` et la bonne branche.
 3. Dans **Settings** du service :
-   - **Root Directory** : `caro_bot`. Railway installe alors les dépendances de `caro_bot/requirements.txt` et lance `python bot.py`, comme indiqué dans `railway.json`.
+   - **Root Directory** : `caro_bot`. Railway installe alors les dépendances de `caro_bot/requirements.txt` et lance `python main.py` (bot Telegram + application web), comme indiqué dans `railway.json`.
 4. Dans **Variables**, ajoute les mêmes valeurs que dans le `.env`.
 5. Ajoute un **Volume** monté sur `/data`, puis la variable `CARO_DB=/data/caro.db`. Sans volume, la mémoire et les rappels sont effacés à chaque redéploiement.
 

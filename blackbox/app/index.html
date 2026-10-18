@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Black Box">
+<meta name="theme-color" content="#06080d">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-180.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -311,6 +318,13 @@ summary { cursor: pointer; font-weight: 600; }
 .setrow { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .setrow:last-child { border-bottom: 0; }
 .setrow small { display: block; color: var(--muted); font-size: 12.5px; }
+.login { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: grid; place-items: center; padding: 16px; }
+.login[hidden] { display: none; }
+.login form { width: min(100%, 360px); display: flex; flex-direction: column; gap: 12px; }
+.login input { background: var(--bg); border: 1px solid var(--line); padding: 12px; font-size: 16px; }
+.confirmrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; padding: 10px; border: 1px solid var(--guard); background: rgba(255,77,109,.08); }
+.confirmrow[hidden] { display: none; }
+.confirmrow .danger { background: var(--guard); color: #fff; border: 0; padding: 8px 14px; font-family: var(--pixel); font-size: 12px; }
 .toast { position: fixed; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; background: var(--fg); color: var(--bg); padding: 9px 14px; font-size: 13.5px; max-width: 88vw; z-index: 30; transition: all .25s; pointer-events: none; text-align: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 @media (prefers-reduced-motion: reduce) { .pill.talk, #log li.new { animation: none; } * { transition: none !important; } }
@@ -553,7 +567,8 @@ alertcondition(rsiOversold, "CARO · RSI survendu", "CARO : RSI survendu sur {{t
           <div><b>Interrupteur d'urgence</b><div class="note" id="killTxt">Bots actifs</div></div>
           <button class="sw2 danger" id="kill" type="button" role="switch" aria-checked="false" aria-label="Interrupteur d'urgence"></button>
         </div>
-        <p class="note">Pour l'instant, l'interrupteur met tous les bots en pause à l'écran. Il pilotera les vrais bots quand le serveur CARO sera branché.</p>
+        <div class="confirmrow" id="killConfirm" hidden><span id="killConfirmTxt">Arrêter tous tes vrais bots?</span><button class="danger" type="button" id="killYes">Oui, pour vrai</button><button class="ghost" type="button" id="killNo">Annuler</button></div>
+        <p class="note" id="killNote">Ici, l'interrupteur met les bots en pause à l'écran seulement. Sur ton serveur Railway, il arrête les vrais bots.</p>
       </section>
 
       <section class="sec card">
@@ -716,6 +731,15 @@ alertcondition(rsiOversold, "CARO · RSI survendu", "CARO : RSI survendu sur {{t
   <button type="button" role="tab" data-tab="plus" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Plus</button>
 </div></nav>
 <div class="toast" id="toast" role="status"></div>
+<div class="login" id="login" hidden>
+  <form id="loginForm" class="card">
+    <h1>BLACK BOX</h1>
+    <p class="sub">Ton serveur est en ligne. Entre le mot de passe de l'application (la variable APP_PASSWORD dans Railway).</p>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe">
+    <button class="btn" type="submit">Entrer</button>
+    <p class="note" id="loginErr"></p>
+  </form>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -730,6 +754,21 @@ function load(k) { try { return localStorage.getItem(k); } catch (e) { return nu
 function drop(k) { try { localStorage.removeItem(k); } catch (e) {} }
 var tt;
 function toast(m) { var t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove("show"); }, 3200); }
+
+/* ============================================================
+   MODE SERVEUR (application hébergée sur Railway)
+   ============================================================ */
+var SERVER = null, serverBots = null;
+function api(path, body) {
+  var opt = { credentials: "same-origin", headers: { "X-Requested-With": "blackbox" } };
+  if (body !== undefined) { opt.method = "POST"; opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  return fetch(path, opt).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (j) {
+      if (!r.ok) { var e = new Error(j.erreur || ("Erreur " + r.status)); e.status = r.status; throw e; }
+      return j;
+    });
+  });
+}
 
 /* ============================================================
    RÉGLAGES
@@ -1420,6 +1459,21 @@ function robot(c, a) {
 }
 function renderBots() {
   var box2 = $("bots"); box2.innerHTML = "";
+  if (SERVER && serverBots) {
+    if (!serverBots.bots.length) { box2.innerHTML = '<div class="bot off" style="grid-template-columns:1fr"><div class="d"></div></div>'; box2.querySelector(".d").textContent = serverBots.raison || "Aucun bot sur 3Commas."; return; }
+    serverBots.bots.forEach(function (b, i) {
+      var c = document.createElement("div"), on = b.actif && !killOn;
+      c.className = "bot" + (on ? "" : " off");
+      c.innerHTML = robot(on ? ["#b58cff", "#4fd1ff", "#ff5ec8", "#ffb84d"][i % 4] : "#3a4766", i % 4) + '<div><div class="n"></div><div class="d"></div></div><div class="r"><span></span></div>';
+      c.querySelector(".n").textContent = b.nom;
+      c.querySelector(".d").textContent = "3Commas · " + (b.paires.join(", ") || "?") + " · " + b.trades_ouverts + " trade(s) ouvert(s)";
+      var p = parseFloat(b.profit_usd), sp = c.querySelector(".r span");
+      sp.textContent = isFinite(p) ? (p >= 0 ? "+" : "\u2212") + Math.abs(p).toFixed(2).replace(".", ",") + " $ US" : (on ? "actif" : "arrêté");
+      sp.className = isFinite(p) ? (p >= 0 ? "up" : "dn") : "";
+      box2.appendChild(c);
+    });
+    return;
+  }
   BOTS.forEach(function (b) {
     var c = document.createElement("div");
     var on = b.on && !killOn;
@@ -1437,6 +1491,7 @@ function renderBots() {
   });
 }
 function setBot(name, on) {
+  if (SERVER) throw new Error("Tes vrais bots se pilotent dans 3Commas. Ici, utilise l'interrupteur d'urgence pour tout arrêter.");
   var b = BOTS.filter(function (x) { return x.n.toLowerCase().indexOf(String(name).toLowerCase()) >= 0; })[0];
   if (!b) throw new Error("Aucun bot nommé " + name + ". Bots : " + BOTS.map(function (x) { return x.n; }).join(", "));
   if (killOn) throw new Error("L'interrupteur d'urgence est activé : les bots sont bloqués.");
@@ -1573,6 +1628,16 @@ function setSource(live) {
   else { p.className = "src demo"; p.textContent = "Démo"; }
 }
 function loadMarket(userAsked) {
+  if (SERVER) {
+    $("srcNote").textContent = "Chargement des prix " + chartSym + " depuis Gemini…";
+    return api("/api/bougies?symbole=" + chartSym + "&intervalle=" + chartTf).then(function (j) {
+      var cs = parseGemini(j.bougies);
+      if (cs.length < 30) throw new Error("Pas assez de bougies");
+      candles = cs; liveAt = new Date(); setSource(true); applyCandles();
+      $("srcNote").textContent = "Vrais prix de Gemini, par ton serveur. " + cs.length + " bougies.";
+      return "live";
+    }).catch(function (e) { candles = demoCandles(); liveAt = null; setSource(false); applyCandles(); $("srcNote").textContent = e.message + " Données de démo."; return "demo"; });
+  }
   candles = demoCandles(); liveAt = null; setSource(false); applyCandles();
   if (!userAsked && !mcpTried) return Promise.resolve("demo");
   mcpTried = true;
@@ -1885,12 +1950,33 @@ function renderRisk() {
   var pill = $("killPill"); pill.textContent = killOn ? "Arrêt d'urgence" : "Bots actifs"; pill.classList.toggle("on", killOn);
 }
 function setKill(on) {
+  if (SERVER) { askRealKill(!!on); return on ? "Confirme l'arrêt réel avec le bouton rouge dans Diagnostics." : "Confirme le redémarrage avec le bouton dans Diagnostics."; }
   killOn = !!on; store("bb_kill", killOn ? "1" : "0");
   renderRisk(); renderBots();
   sendMsg(AG.PULSE, AG.CARO, killOn ? "Interrupteur d'urgence activé : tous les bots arrêtés" : "Interrupteur désactivé, les bots peuvent reprendre", killOn);
   return killOn ? "Interrupteur d'urgence activé : tous les bots sont arrêtés à l'écran." : "Interrupteur désactivé.";
 }
-$("kill").addEventListener("click", function () { toast(setKill(!killOn)); });
+$("kill").addEventListener("click", function () { if (SERVER) askRealKill(!killOn); else toast(setKill(!killOn)); });
+var pendingKill = null;
+function askRealKill(on) {
+  pendingKill = on;
+  $("killConfirmTxt").textContent = on ? "Arrêter tous tes VRAIS bots (3Commas, Freqtrade)? Les trades déjà ouverts restent ouverts." : "Redémarrer les bots arrêtés par l'interrupteur?";
+  $("killYes").textContent = on ? "Oui, tout arrêter" : "Oui, redémarrer";
+  $("killConfirm").hidden = false;
+  if (currentTab !== "diag") showTab("diag");
+  setTimeout(function () { $("killConfirm").scrollIntoView({ block: "center", behavior: STILL() ? "auto" : "smooth" }); }, 60);
+}
+$("killNo").addEventListener("click", function () { $("killConfirm").hidden = true; pendingKill = null; });
+$("killYes").addEventListener("click", function () {
+  var on = pendingKill; $("killConfirm").hidden = true; pendingKill = null;
+  $("killYes").disabled = true;
+  api(on ? "/api/kill" : "/api/reprendre", { confirme: true }).then(function (j) {
+    killOn = !!j.kill_actif; store("bb_kill", killOn ? "1" : "0");
+    renderRisk(); renderBots();
+    (j.lignes || []).forEach(function (l) { addLog(AG.PULSE, AG.CARO, l, on); });
+    toast(on ? "Bots arrêtés pour vrai." : "Bots redémarrés.");
+  }).catch(function (e) { toast(e.message); }).then(function () { $("killYes").disabled = false; });
+});
 function simulate(rs, risk, sd) {
   var r = rng(sd), P = 300, NN = 100, paths = [], maxdds = [], finals = [];
   for (var i = 0; i < P; i++) {
@@ -1953,7 +2039,11 @@ $$("#rangeChips .chip").forEach(function (c) {
 $("mcRisk").addEventListener("input", function (e) { mcRisk = parseFloat(e.target.value); renderLab(); });
 $("mcAgain").addEventListener("click", function () { mcSeed = Math.floor(Math.random() * 1e6); renderLab(); toast("Nouvelle simulation lancée"); });
 $("impGo").addEventListener("click", function () {
-  try { var t = parseTrades($("impTxt").value); trades = t; isDemo = false; store("bb_trades", $("impTxt").value); firstDraw = true; renderDiag(); toast(t.length + " trades chargés"); }
+  try {
+    var raw = $("impTxt").value, t = parseTrades(raw); trades = t; isDemo = false; store("bb_trades", raw); firstDraw = true; renderDiag();
+    if (SERVER) api("/api/trades", { trades: JSON.parse(raw) }).then(function (j) { toast(j.nombre + " trades enregistrés dans ta base de données"); }, function (e) { toast("Base de données : " + e.message); });
+    else toast(t.length + " trades chargés");
+  }
   catch (e) { toast("Import impossible : " + (e && e.message ? e.message : "JSON invalide")); }
 });
 $("impDemo").addEventListener("click", function () { drop("bb_trades"); trades = genDemo(); isDemo = true; $("impTxt").value = ""; firstDraw = true; renderDiag(); toast("Retour aux données de démo"); });
@@ -2018,6 +2108,22 @@ function payCard(cls, title, net, value, valid, note, qrText) {
     "Dans l'app de ta banque : Virement Interac, puis ce courriel" + (PAY.interac.nom ? ", au nom de " + PAY.interac.nom : "") + ". Le dépôt automatique évite la question de sécurité.", null));
 })();
 function renderLinks() {
+  if (SERVER) {
+    var S2 = SERVER;
+    var L2 = [
+      ["Serveur Railway", "L'application et la base de données", ["ok", "En ligne"]],
+      ["Bot Telegram CARO", "Commandes /stop, /3c, /post…", S2.telegram ? ["ok", "Actif"] : ["todo", "Désactivé"]],
+      ["Interrupteur d'urgence", "Arrête les vrais bots", S2.interrupteur_branche ? ["ok", "Branché"] : ["todo", "Clé requise"]],
+      ["3Commas (lecture)", "Tes bots dans le garage", S2.threecommas ? ["ok", "Branché"] : ["todo", "Clé requise"]],
+      ["Gemini", "Vrais prix des graphiques", liveAt ? ["ok", "Actif"] : ["todo", "Onglet Graphiques"]],
+      ["CARO (Claude)", "L'agent qui répond dans l'app et Telegram", S2.caro ? ["ok", "Actif"] : ["todo", "Clé requise"]],
+      ["Publication quotidienne", "ECHO, avec ton OK", S2.promo ? ["ok", "Active"] : ["off", "Pas configurée"]],
+      ["Secours Ollama", "Si Claude est indisponible", S2.secours ? ["ok", "Prêt"] : ["off", "Optionnel"]],
+      ["Phantom (Solana)", "Lecture seule, depuis cette page", wallet ? ["ok", "Connecté"] : ["todo", "À connecter"]]
+    ];
+    $("links").innerHTML = L2.map(function (r) { return '<div class="lrow"><div><b>' + r[0] + '</b><small>' + r[1] + '</small></div><span class="st ' + r[2][0] + '">' + r[2][1] + '</span></div>'; }).join("");
+    return;
+  }
   var L = [
     ["Phantom (Solana)", "Lecture seule, depuis cette page", wallet ? ["ok", "Connecté"] : ["todo", "À connecter"]],
     ["Gemini", "Vrais prix pour les graphiques, lecture seule", liveAt ? ["ok", "Actif"] : ["todo", "Onglet Graphiques"]],
@@ -2183,6 +2289,15 @@ function localRoute(q) {
   } catch (e) { return Promise.resolve(e.message); }
   return Promise.resolve("Je comprends pas encore ça en mode simple. Essaie : « montre-moi SOL », « arrête les bots » ou « mes diagnostics ».");
 }
+// En mode serveur, CARO répond par le serveur ; on ouvre quand même la bonne page si c'est évident.
+function navGuess(q) {
+  var s = q.toLowerCase();
+  if (/graph|indicateur|chandel/.test(s)) showTab("graph");
+  else if (/diagnostic|rentab|r[ée]sultat/.test(s)) showTab("diag");
+  else if (/wallet|portefeuille|paiement/.test(s)) showTab("wallet");
+  else if (/param[èe]tre|couleur|th[èe]me/.test(s)) showTab("reglages");
+  else if (/arr[êe]t|urgence/.test(s) && !/reprend|red[ée]marr/.test(s)) askRealKill(true);
+}
 function ask(q) {
   if (voiceBusy || !q) return;
   voiceBusy = true; $("caroFab").classList.add("busy");
@@ -2190,6 +2305,11 @@ function ask(q) {
   sendMsg(USER, AG.CARO, q.length > 70 ? q.slice(0, 70) + "…" : q);
   var bubble = addBubble("caro", "…"); pendingBubble = bubble;
   getSample().then(function (sample) {
+    if (!sample && SERVER) {
+      voiceMode = "serveur"; $("vmode").textContent = "serveur";
+      navGuess(q);
+      return api("/api/caro", { texte: q }).then(function (j) { return j.reponse; }, function (e) { return e.message; });
+    }
     if (!sample) { voiceMode = "local"; $("vmode").textContent = "mode simple"; return localRoute(q); }
     voiceMode = "ia"; $("vmode").textContent = "IA";
     var hist = convo.slice(-6).map(function (m) { return (m.role === "user" ? "Toi : " : "CARO : ") + m.content; }).join("\n");
@@ -2257,6 +2377,31 @@ showTab(VIEWS.indexOf(hashTab) >= 0 ? hashTab : (load("bb_tab") || "salle"));
 autoBtn.setAttribute("aria-pressed", String(SET.auto));
 requestAnimationFrame(frame);
 setTimeout(function () { runMission(MISSIONS[0]); }, 700);
+
+function enterServer(j) {
+  SERVER = j; $("login").hidden = true;
+  $$(".tag")[0].textContent = "Serveur connecté";
+  $("killNote").textContent = "L'interrupteur arrête tes vrais bots (3Commas, Freqtrade), après ta confirmation. Telegram reçoit un avis.";
+  killOn = !!j.kill_actif; renderRisk();
+  api("/api/bots").then(function (b) { serverBots = b; renderBots(); }, function (e) { serverBots = { bots: [], raison: e.message }; renderBots(); });
+  api("/api/trades").then(function (t) { if (t.trades && t.trades.length) { trades = parseTrades(JSON.stringify(t.trades)); isDemo = false; firstDraw = true; renderDiag(); } });
+  mcpTried = true; loadMarket(true);
+  renderLinks();
+}
+function detectServer() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  fetch("/api/etat", { credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    if (!j || !j.serveur) return;
+    if (j.connecte) enterServer(j); else { $("login").hidden = false; setTimeout(function () { $("pw").focus(); }, 50); }
+  }).catch(function () {});
+}
+$("loginForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  $("loginErr").textContent = "";
+  api("/api/login", { motdepasse: $("pw").value }).then(function () { $("pw").value = ""; return api("/api/etat"); }).then(enterServer)
+    .catch(function (er) { $("loginErr").textContent = er.message; });
+});
+detectServer();
 </script>
 
 </body>

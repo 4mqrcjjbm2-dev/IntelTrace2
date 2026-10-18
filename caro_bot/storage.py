@@ -31,6 +31,14 @@ class Storage:
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS trades (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                t TEXT NOT NULL,
+                symbol TEXT NOT NULL,
+                r REAL,
+                pnl_pct REAL,
+                score REAL
+            );
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 text TEXT NOT NULL,
@@ -119,6 +127,20 @@ class Storage:
     def recent_posts(self, limit=7):
         rows = self.db.execute("SELECT text FROM posts ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
         return [r["text"] for r in rows]
+
+    # ---------- Trades (pour les Diagnostics de l'application) ----------
+
+    def replace_trades(self, trades):
+        self.db.execute("DELETE FROM trades")
+        self.db.executemany(
+            "INSERT INTO trades (t, symbol, r, pnl_pct, score) VALUES (?, ?, ?, ?, ?)",
+            [(x["t"], x["symbol"], x.get("r"), x.get("pnl_pct"), x.get("score")) for x in trades],
+        )
+        self.db.commit()
+
+    def list_trades(self):
+        rows = self.db.execute("SELECT t, symbol, r, pnl_pct, score FROM trades ORDER BY t").fetchall()
+        return [{k: r[k] for k in ("t", "symbol", "r", "pnl_pct", "score") if r[k] is not None} for r in rows]
 
     def delete_reminder(self, chat_id, reminder_id):
         cur = self.db.execute(

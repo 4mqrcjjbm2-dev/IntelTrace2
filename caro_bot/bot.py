@@ -43,7 +43,8 @@ def env(name, default=None, required=False):
 
 
 load_dotenv(HERE / ".env")
-TOKEN = env("TELEGRAM_BOT_TOKEN", required=True)
+TELEGRAM_ON = os.getenv("CARO_DISABLE_TELEGRAM") != "1"  # 1 = tests locaux, sans Telegram
+TOKEN = env("TELEGRAM_BOT_TOKEN", required=TELEGRAM_ON)
 env("ANTHROPIC_API_KEY", required=True)
 OWNER_ID = int(env("TELEGRAM_OWNER_ID", "0") or 0)
 TZ = ZoneInfo(env("CARO_TZ", "America/Toronto"))
@@ -346,7 +347,8 @@ async def post_init(app: Application):
         log.warning("TELEGRAM_OWNER_ID est vide : envoie /start au bot pour connaître ton identifiant.")
 
 
-def main():
+def build_application():
+    """Construit l'application Telegram (sans la lancer). Utilisé par main.py et par main() ci-dessous."""
     app = Application.builder().token(TOKEN).post_init(post_init).build()
 
     def on_reminder(chat_id, due_utc, message):
@@ -354,14 +356,8 @@ def main():
         schedule(app, {"id": rid, "chat_id": chat_id, "due_utc": due_utc, "message": message})
         return rid
 
-    app.bot_data["brain"] = Brain(
-        client=anthropic.AsyncAnthropic(),
-        store=store,
-        tz=TZ,
-        model=env("CARO_MODEL", "claude-opus-5-5"),
-        effort=env("CARO_EFFORT", "low"),
+    app.bot_data["brain"] = make_brain(
         on_reminder=on_reminder,
-        threecommas=threecommas,
         on_kill_request=(lambda chat_id, action: ask_kill(app.bot, chat_id, action)) if killswitch.configured else None,
     )
 
@@ -377,7 +373,25 @@ def main():
     app.add_handler(CommandHandler("post", post_cmd))
     app.add_handler(CallbackQueryHandler(on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    return app
+
+
+def make_brain(on_reminder=None, on_kill_request=None):
+    return Brain(
+        client=anthropic.AsyncAnthropic(),
+        store=store,
+        tz=TZ,
+        model=env("CARO_MODEL", "claude-opus-5-5"),
+        effort=env("CARO_EFFORT", "low"),
+        on_reminder=on_reminder,
+        threecommas=threecommas,
+        on_kill_request=on_kill_request,
+    )
+
+
+def main():
+    """Bot Telegram seul (sans l'application web). Pour tout lancer : python main.py"""
+    build_application().run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
