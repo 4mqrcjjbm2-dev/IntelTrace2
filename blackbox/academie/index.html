@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Académie CARO</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Chakra+Petch:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Concept : carnet de formation du QG Black Box. CARO en pixel art comme carte du corps, puis la route en 4 niveaux, puis le premier raccourci iPhone. Un seul thème sombre, assumé. */
+:root {
+  --bg: #06080d;
+  --panel: #0c111c;
+  --panel2: #101727;
+  --line: #1c2740;
+  --fg: #e4ecff;
+  --muted: #8796b8;
+  --glow: #d8f36a;
+  --brain: #4fd1ff;
+  --nerve: #3df5a8;
+  --lib: #b58cff;
+  --muscle: #ffb84d;
+  --hand: #ff4d6d;
+  --pixel: "Silkscreen", "Courier New", monospace;
+  --display: "Chakra Petch", "Arial Narrow", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+code { font-family: var(--mono); font-size: .9em; background: var(--panel2); border: 1px solid var(--line); padding: 0 5px; overflow-wrap: anywhere; }
+a { color: var(--glow); }
+
+header { display: flex; flex-direction: column; gap: 8px; }
+.tag { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--glow); }
+h1 { font-family: var(--pixel); font-weight: 700; font-size: clamp(32px, 8vw, 58px); line-height: 1; margin: 0; color: var(--glow); text-shadow: 0 0 18px rgba(216,243,106,.3); text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; font-size: 17px; }
+h2 { font-family: var(--pixel); font-weight: 400; font-size: clamp(20px, 4vw, 26px); margin: 0; color: var(--fg); text-wrap: balance; }
+.sec-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.sec-head p { margin: 0; color: var(--muted); max-width: 62ch; }
+.kicker { font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- Anatomie ---------- */
+.anat { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+@media (min-width: 860px) { .anat { grid-template-columns: 340px minmax(0, 1fr); align-items: start; } }
+.body-box { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+#caro { width: 100%; max-width: 300px; height: auto; display: block; shape-rendering: crispEdges; }
+#caro .px { transition: opacity .25s; }
+#caro .org { cursor: pointer; }
+#caro.focus .org:not(.on) { opacity: .28; }
+#caro .org.on { filter: drop-shadow(0 0 3px currentColor); }
+@media (prefers-reduced-motion: no-preference) {
+  #caro .org.on { animation: beat 1.4s ease-in-out infinite; }
+  #caro .eye { animation: blink 4.2s steps(1) infinite; }
+}
+@keyframes beat { 50% { opacity: .7; } }
+@keyframes blink { 0%, 96% { opacity: 1; } 97%, 100% { opacity: .1; } }
+.organs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; width: 100%; }
+.ob { background: var(--panel2); border: 1px solid var(--line); padding: 6px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; color: var(--muted); }
+.ob b { font-family: var(--pixel); font-weight: 400; font-size: 11px; color: var(--c); }
+.ob[aria-pressed="true"] { border-color: var(--c); color: var(--fg); background: var(--bg); }
+.hint { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin: 0; text-align: center; }
+
+.fiche { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--c); padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.fiche .eq { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--c); }
+.fiche h3 { margin: 0; font-family: var(--pixel); font-weight: 400; font-size: 24px; color: var(--fg); }
+.fiche .one { margin: 0; font-size: 18px; max-width: 58ch; }
+.rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 620px) { .rows { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.row h4 { margin: 0 0 4px; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.row p { margin: 0; font-size: 15px; }
+.agents { display: flex; flex-wrap: wrap; gap: 6px; }
+.agents span { font-family: var(--pixel); font-size: 12px; border: 1px solid var(--c); color: var(--c); padding: 1px 8px; }
+.term { background: var(--bg); border: 1px solid var(--line); padding: 10px 12px; font-family: var(--mono); font-size: 13px; min-height: 150px; overflow-x: auto; }
+.term .t { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; display: flex; justify-content: space-between; margin-bottom: 6px; }
+.term .ln { white-space: pre-wrap; margin: 0; }
+.term .ln.hl { color: var(--c); }
+.term .ln.ok { color: var(--nerve); }
+.term .ln.dim { color: var(--muted); }
+.term .cur::after { content: "▌"; color: var(--c); }
+@media (prefers-reduced-motion: no-preference) { .term .ln.new { animation: in .35s ease-out; } }
+@keyframes in { from { opacity: 0; transform: translateX(-4px); } }
+
+/* ---------- Route ---------- */
+.progress { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); padding: 10px 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.progress .bar { flex: 1; min-width: 140px; height: 8px; background: var(--line); }
+.progress .bar i { display: block; height: 100%; width: 0; background: var(--glow); box-shadow: 0 0 10px rgba(216,243,106,.5); transition: width .4s; }
+.progress b { font-family: var(--pixel); font-weight: 400; font-size: 15px; font-variant-numeric: tabular-nums; }
+.progress small { color: var(--muted); font-size: 12.5px; flex-basis: 100%; }
+.levels { display: flex; flex-direction: column; gap: 26px; }
+.level-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.level-h .num { font-family: var(--pixel); font-size: 13px; color: var(--bg); background: var(--c); padding: 1px 8px; }
+.level-h h3 { margin: 0; font-family: var(--pixel); font-weight: 400; font-size: 18px; color: var(--c); }
+.level-h p { margin: 0; color: var(--muted); font-size: 14.5px; flex-basis: 100%; }
+.steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.step { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.step.done { border-color: var(--c); background: var(--panel2); }
+.step-top { display: flex; gap: 10px; align-items: start; }
+.chk { flex: none; width: 22px; height: 22px; border: 1.5px solid var(--c); background: var(--bg); display: grid; place-items: center; padding: 0; margin-top: 2px; }
+.chk svg { width: 14px; height: 14px; opacity: 0; }
+.step.done .chk { background: var(--c); }
+.step.done .chk svg { opacity: 1; }
+.step h4 { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.step p { margin: 0; font-size: 14.5px; color: var(--fg); }
+.mini { background: var(--bg); border: 1px dashed var(--line); padding: 8px 10px; font-size: 14px; }
+.mini b { font-family: var(--mono); font-size: 10.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--c); display: block; margin-bottom: 2px; }
+.meta { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-top: auto; }
+
+/* ---------- Commence ici ---------- */
+.start { background: var(--panel); border: 1px solid var(--glow); box-shadow: 0 0 30px rgba(216,243,106,.08); padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+.warn { border: 1px solid var(--hand); background: rgba(255,77,109,.07); padding: 10px 12px; font-size: 15px; }
+.warn b { color: var(--hand); font-family: var(--pixel); font-weight: 400; font-size: 13px; display: block; margin-bottom: 2px; }
+.howto { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; counter-reset: s; }
+.howto > li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; counter-increment: s; }
+.howto > li::before { content: counter(s); font-family: var(--pixel); font-size: 16px; color: var(--bg); background: var(--glow); width: 30px; height: 30px; display: grid; place-items: center; }
+.howto h4 { margin: 3px 0 4px; font-size: 17px; }
+.howto p { margin: 0 0 6px; font-size: 15px; }
+.howto ul { margin: 4px 0 0; padding-left: 18px; font-size: 15px; }
+.howto ul li { margin-bottom: 3px; }
+.code { position: relative; background: var(--bg); border: 1px solid var(--line); margin-top: 6px; }
+.code pre { margin: 0; padding: 12px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--fg); }
+.code .k { color: var(--brain); } .code .s { color: var(--glow); } .code .c { color: var(--muted); }
+.copy { position: absolute; top: 6px; right: 6px; background: var(--panel2); border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; padding: 3px 8px; }
+.copy.ok { border-color: var(--nerve); color: var(--nerve); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { background: var(--panel2); border: 1px solid var(--line); padding: 6px 12px; font-size: 14px; }
+.tab[aria-selected="true"] { border-color: var(--glow); color: var(--glow); }
+
+footer { border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); font-size: 14px; }
+footer p { margin: 0 0 6px; max-width: 75ch; }
+.c-brain { --c: var(--brain); } .c-nerve { --c: var(--nerve); } .c-lib { --c: var(--lib); } .c-muscle { --c: var(--muscle); } .c-hand { --c: var(--hand); } .c-glow { --c: var(--glow); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="tag">● QG Black Box · formation</div>
+    <h1>Académie CARO</h1>
+    <p class="lede">Ton agent expliqué comme un corps, puis la route pour le bâtir pour vrai, de ton premier script jusqu'à « Dis Siri, Hey Caro » sur ton iPhone 13.</p>
+  </header>
+
+  <section id="anatomie">
+    <div class="sec-head">
+      <span class="kicker">Partie 1</span>
+      <h2>L'anatomie de CARO</h2>
+      <p>Cinq morceaux font un agent. Touche un organe pour voir ce qu'il fait, à quoi il correspond chez Claude et quels agents de ton équipe il fait vivre.</p>
+    </div>
+    <div class="anat">
+      <div class="body-box">
+        <svg id="caro" viewBox="0 0 24 25" role="img" aria-label="CARO en pixel art, avec ses cinq organes"></svg>
+        <div class="organs" id="organs" role="group" aria-label="Choisir un organe"></div>
+        <p class="hint">Touche CARO ou un bouton</p>
+      </div>
+      <article class="fiche" id="fiche" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <section id="route">
+    <div class="sec-head">
+      <span class="kicker">Partie 2</span>
+      <h2>La route en 4 niveaux</h2>
+      <p>Chaque étape donne un mini-projet concret pour CARO. Coche ce que tu as fini. Tes cases restent dans ce navigateur seulement : elles ne suivent pas sur un autre appareil.</p>
+    </div>
+    <div class="progress">
+      <b id="pCount">0/15</b>
+      <div class="bar"><i id="pBar"></i></div>
+      <span id="pLabel" class="kicker">Niveau 1 en cours</span>
+    </div>
+    <div class="levels" id="levels"></div>
+  </section>
+
+  <section id="commence">
+    <div class="sec-head">
+      <span class="kicker">Partie 3 · ta première victoire</span>
+      <h2>Commence ici : le plus petit CARO qui marche</h2>
+      <p>Un Raccourci iPhone qui écoute ta question, l'envoie à Claude et lit la réponse à voix haute. Une soirée de travail, aucun serveur.</p>
+    </div>
+    <div class="start">
+      <div class="warn"><b>Ta clé API = ton portefeuille</b>Quiconque a ta clé peut dépenser sur ton compte. Ne la mets jamais sur GitHub, dans une capture d'écran ou dans un raccourci que tu partages. Si elle fuit, supprime-la dans la console et crées-en une autre.</div>
+      <ol class="howto">
+        <li>
+          <div>
+            <h4>Crée ta clé API</h4>
+            <p>Va sur <a href="https://platform.claude.com" target="_blank" rel="noopener">platform.claude.com</a>, ajoute quelques dollars de crédit, puis crée une clé dans la section des clés API. Garde-la dans ton gestionnaire de mots de passe.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h4>Ouvre Raccourcis et crée « Hey Caro »</h4>
+            <p>Dans l'app Raccourcis, crée un nouveau raccourci et nomme-le <b>Hey Caro</b>. Siri le lancera quand tu diras « Dis Siri, Hey Caro ».</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h4>Ajoute les actions dans cet ordre</h4>
+            <ul>
+              <li><b>Dicter le texte</b> : CARO écoute ta question.</li>
+              <li><b>Obtenir le contenu de l'URL</b> : URL <code>https://api.anthropic.com/v1/messages</code>, méthode <b>POST</b>.</li>
+              <li>Dans la même action, ajoute 3 en-têtes : <code>x-api-key</code> = ta clé, <code>anthropic-version</code> = <code>2023-06-01</code>, <code>content-type</code> = <code>application/json</code>.</li>
+              <li>Corps de la requête : <b>JSON</b>, avec les champs ci-dessous. Remplace la valeur de <code>content</code> par la variable « Texte dicté ».</li>
+            </ul>
+            <div class="code"><button class="copy" type="button" data-copy="json">Copier</button><pre id="code-json"><span class="c">// Corps JSON de la requête</span>
+{
+  <span class="k">"model"</span>: <span class="s">"claude-opus-5-5"</span>,
+  <span class="k">"max_tokens"</span>: 2048,
+  <span class="k">"output_config"</span>: { <span class="k">"effort"</span>: <span class="s">"low"</span> },
+  <span class="k">"system"</span>: <span class="s">"Tu es CARO, l'assistant vocal de Black Box. Réponds en français québécois, en 3 phrases max, sans liste ni symbole : ta réponse sera lue à voix haute."</span>,
+  <span class="k">"messages"</span>: [
+    { <span class="k">"role"</span>: <span class="s">"user"</span>, <span class="k">"content"</span>: <span class="s">"[Texte dicté]"</span> }
+  ]
+}</pre></div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h4>Lis la réponse à voix haute</h4>
+            <p>La réponse contient une liste <code>content</code>. Ce modèle réfléchit toujours un peu avant de répondre, alors cette liste commence par un bloc de réflexion (vide) suivi du bloc de texte. Il faut garder seulement le texte :</p>
+            <ul>
+              <li><b>Obtenir la valeur du dictionnaire</b> : clé <code>content</code>.</li>
+              <li><b>Répéter avec chaque élément</b> de cette liste.</li>
+              <li>Dedans : <b>Si</b> la valeur de <code>type</code> est <code>text</code>, alors <b>Énoncer le texte</b> avec la valeur de <code>text</code>.</li>
+            </ul>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h4>Teste : « Dis Siri, Hey Caro »</h4>
+            <p>Demande-lui « c'est quoi un jeton? ». Si rien ne parle, ajoute <b>Afficher le résultat</b> juste après l'appel URL pour voir l'erreur. Une erreur 401 veut dire que la clé est mauvaise, une erreur 400 que le JSON a une faute.</p>
+          </div>
+        </li>
+      </ol>
+      <div>
+        <span class="kicker">Même chose en Python, pour le niveau 1</span>
+        <div class="code"><button class="copy" type="button" data-copy="py">Copier</button><pre id="code-py"><span class="c"># pip install anthropic
+# La clé est lue dans la variable d'environnement ANTHROPIC_API_KEY</span>
+<span class="k">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+reponse = client.messages.create(
+    model=<span class="s">"claude-opus-5-5"</span>,
+    max_tokens=16000,
+    system=<span class="s">"Tu es CARO, l'assistant de Black Box. Réponds en français québécois."</span>,
+    messages=[{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"Salut Caro, t'es qui?"</span>}],
+)
+
+<span class="k">for</span> bloc <span class="k">in</span> reponse.content:
+    <span class="k">if</span> bloc.type == <span class="s">"text"</span>:
+        print(bloc.text)
+
+print(reponse.usage.input_tokens, reponse.usage.output_tokens)  <span class="c"># ce que tu paies</span></pre></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Tu peux changer de modèle dans le JSON. <code>claude-opus-5-5</code> est le plus fort pour l'usage courant. <code>claude-haiku-5-5</code> coûte beaucoup moins cher et suffit pour des questions simples.</p>
+    <p>La page du QG Black Box reste une simulation. Cette académie mène au vrai CARO, une pièce à la fois.</p>
+  </footer>
+</div>
+
+<script>
+var ORGANS = [
+  { id: "brain", px: "B", cls: "c-brain", col: "#4fd1ff", dim: "#1c4a5e", name: "Cerveau", tech: "LLM", eq: "LLM = le cerveau",
+    one: "Comprend, écrit et raisonne. Il sait seulement ce qu'il a appris et ce que tu lui montres dans la demande.",
+    claude: "Les modèles Claude : Opus 5.5 pour le plus difficile, Sonnet 5.5 pour le quotidien, Haiku 5.5 pour les petites tâches rapides et peu chères. Ils lisent jusqu'à 1 million de jetons d'un coup.",
+    why: "Tout passe par lui. Chaque mot lu ou écrit se compte en jetons, et c'est ça que tu paies.",
+    agents: ["JARVIS", "VOX"],
+    demo: [["dim", "> Toi : « Caro, ma semaine est-tu chargée? »"], ["hl", "découpe en jetons : Caro · , · ma · sem · aine · est · -tu · charg · ée · ?"], ["", "10 jetons lus · contexte : 1 000 000 places"], ["", "raisonne… lit l'agenda que JARVIS lui a donné"], ["ok", "< CARO : « Pas pire : 3 rendez-vous, mercredi est libre. »"]] },
+  { id: "lib", px: "L", cls: "c-lib", col: "#b58cff", dim: "#3b2d5c", name: "Mémoire", tech: "RAG", eq: "RAG = cerveau + bibliothèque",
+    one: "Avant de répondre, CARO cherche dans tes documents et s'appuie sur ce qu'il trouve, au lieu d'inventer.",
+    claude: "Ce n'est pas un bouton unique : ton code cherche les bons passages (notes, lexique, PDF) et les met dans la demande. L'API peut citer ses sources avec les citations sur les documents.",
+    why: "C'est ce qui fait que CARO connaît TON lexique, TES préférences et TES fichiers.",
+    agents: ["CORTEX", "VAULT"],
+    demo: [["dim", "> Toi : « Ça veut dire quoi \"char\" dans mon lexique? »"], ["", "CORTEX cherche dans lexique-quebecois.md…"], ["hl", "trouvé : « char = voiture » (ligne 42)"], ["", "le passage est ajouté à la demande pour le cerveau"], ["ok", "< CARO : « Un char, c'est une voiture. Source : ton lexique. »"]] },
+  { id: "nerve", px: "N", cls: "c-nerve", col: "#3df5a8", dim: "#14533c", name: "Nerfs", tech: "MCP", eq: "MCP = le système nerveux",
+    one: "Une prise standard pour brancher CARO à tes apps : Gmail, Agenda, Drive, le web, tes fichiers.",
+    claude: "MCP (Model Context Protocol) est un standard ouvert. Claude Code, l'app Claude et l'API se branchent à des serveurs MCP. Les connecteurs Gmail, Agenda et Drive de cette session en sont des exemples.",
+    why: "Tu écris l'intégration une fois, au lieu de recoder chaque app pour chaque agent.",
+    agents: ["FRIDAY", "KAREN", "ORACLE"],
+    demo: [["dim", "serveurs MCP branchés :"], ["ok", "  ● gmail     → lire, chercher, brouillon"], ["ok", "  ● agenda    → événements, trouver un trou"], ["ok", "  ● drive     → chercher, lire un fichier"], ["hl", "FRIDAY appelle gmail.search(\"de:patron cette semaine\")"], ["", "← 3 courriels reçus, transmis au cerveau"]] },
+  { id: "muscle", px: "M", cls: "c-muscle", col: "#ffb84d", dim: "#5c4318", name: "Réflexes", tech: "Skills", eq: "Skills = la mémoire musculaire",
+    one: "Du savoir-faire sauvegardé pour les tâches qui reviennent. Chargé seulement quand une tâche en a besoin.",
+    claude: "Les Agent Skills : un dossier avec un fichier SKILL.md (instructions) et parfois des scripts. Claude lit juste la courte description, puis charge le reste au besoin.",
+    why: "CARO n'a pas besoin de réapprendre ton style de post ou ton format de budget à chaque fois.",
+    agents: ["FORGE", "PRISM", "ECHO"],
+    demo: [["dim", "skills disponibles (descriptions seulement) :"], ["", "  · post-reseaux   · budget-paie   · rapport-veille"], ["dim", "> Toi : « Fais-moi un post sur Black Box »"], ["hl", "ECHO charge post-reseaux/SKILL.md"], ["ok", "→ ton ton, tes hashtags, ton format : appliqués"]] },
+  { id: "hand", px: "H", cls: "c-hand", col: "#ff4d6d", dim: "#5c1d2a", name: "Mains", tech: "Agent", eq: "Agent = cerveau + mains",
+    one: "Planifie les étapes tout seul, utilise des outils pour agir, et demande ton OK avant les gestes impossibles à défaire.",
+    claude: "Le « tool use » de l'API : tu décris des outils, Claude demande de les appeler, ton code les exécute. Le Tool Runner du SDK fait la boucle pour toi. Le Claude Agent SDK donne la boucle de Claude Code. Managed Agents l'héberge chez Anthropic.",
+    why: "C'est la différence entre un chatbot qui répond et un agent qui fait le travail.",
+    agents: ["JARVIS", "SENTINEL", "AEGIS"],
+    demo: [["dim", "> Toi : « Réponds à mon patron que j'arrive à 9 h »"], ["", "plan : 1 lire le courriel · 2 écrire · 3 envoyer"], ["ok", "✓ outil lire_courriel()"], ["ok", "✓ outil ecrire_brouillon()"], ["hl", "⏸ envoyer() = geste irréversible → SENTINEL attend ton OK"]] }
+];
+var BYID = {}; ORGANS.forEach(function (o) { BYID[o.id] = o; BYID[o.px] = o; });
+
+// CARO en pixels : 24 × 25. Lettres = organes, minuscules = carrosserie.
+var MAP = [
+  "........hhhhhhhh........",
+  "......hhBBBBBBBBhh......",
+  ".....hBBBBBBBBBBBBh.....",
+  ".....hBBBBBBBBBBBBh.....",
+  ".....hhhhhhhhhhhhhh.....",
+  ".....hffffffffffffh.....",
+  ".....hfeeffffffeefh.....",
+  ".....hffffffffffffh.....",
+  ".....hffffmmmmffffh.....",
+  "......hhhhhhhhhhhh......",
+  "..........fNNf..........",
+  "....MMbbbbbNNbbbbbMM....",
+  "...MMMbbbbbNNbbbbbMMM...",
+  "...MMMbLLLLNNbbbbbMMM...",
+  "...MMMbLLLLNNbbbbbMMM...",
+  "...MMMbLLLLNNbbbbbMMM...",
+  "...MM.bLLLLNNbbbbb.MM...",
+  "...MM.bbbbbNNbbbbb.MM...",
+  "...MM.bbbbbNNbbbbb.MM...",
+  "..HHH.bbbbbNNbbbbb.HHH..",
+  "..HHH.bbbbbbbbbbbb.HHH..",
+  "......llll....llll......",
+  "......llll....llll......",
+  "......llll....llll......",
+  ".....lllll....lllll....."
+];
+var SHELL = { h: "#2a3550", f: "#121a2b", e: "#d8f36a", m: "#6b7a2a", b: "#18213a", l: "#101727" };
+var NS = "http://www.w3.org/2000/svg";
+var svg = document.getElementById("caro");
+var groups = {};
+ORGANS.forEach(function (o) {
+  var g = document.createElementNS(NS, "g");
+  g.setAttribute("class", "org");
+  g.setAttribute("data-org", o.id);
+  g.style.color = o.col;
+  groups[o.id] = g;
+});
+var shell = document.createElementNS(NS, "g");
+svg.appendChild(shell);
+MAP.forEach(function (row, y) {
+  for (var x = 0; x < row.length; x++) {
+    var ch = row[x];
+    if (ch === ".") continue;
+    var r = document.createElementNS(NS, "rect");
+    r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", 1.02); r.setAttribute("height", 1.02);
+    r.setAttribute("class", "px" + (ch === "e" ? " eye" : ""));
+    if (BYID[ch]) {
+      // damier léger pour la texture pixel
+      r.setAttribute("fill", (x + y) % 3 === 0 ? BYID[ch].dim : BYID[ch].col);
+      groups[BYID[ch].id].appendChild(r);
+    } else {
+      r.setAttribute("fill", SHELL[ch] || "#18213a");
+      shell.appendChild(r);
+    }
+  }
+});
+ORGANS.forEach(function (o) {
+  var t = document.createElementNS(NS, "title"); t.textContent = o.name + " · " + o.tech;
+  groups[o.id].appendChild(t);
+  groups[o.id].addEventListener("click", function () { pick(o.id); });
+  svg.appendChild(groups[o.id]);
+});
+
+var ob = document.getElementById("organs"), obtn = {};
+ORGANS.forEach(function (o) {
+  var b = document.createElement("button");
+  b.type = "button"; b.className = "ob " + o.cls;
+  b.innerHTML = "<b></b><span></span>";
+  b.querySelector("b").textContent = o.tech;
+  b.querySelector("span").textContent = o.name;
+  b.addEventListener("click", function () { pick(o.id); });
+  obtn[o.id] = b; ob.appendChild(b);
+});
+
+var demoTimer = null;
+function pick(id) {
+  var o = BYID[id];
+  svg.classList.add("focus");
+  Object.keys(groups).forEach(function (k) {
+    groups[k].classList.toggle("on", k === id);
+    obtn[k].setAttribute("aria-pressed", String(k === id));
+  });
+  var f = document.getElementById("fiche");
+  f.className = "fiche " + o.cls;
+  f.innerHTML =
+    '<div><div class="eq"></div><h3></h3></div><p class="one"></p>' +
+    '<div class="rows"><div class="row"><h4>Chez Claude</h4><p class="cl"></p></div>' +
+    '<div class="row"><h4>Pourquoi ça compte</h4><p class="wh"></p></div></div>' +
+    '<div class="row"><h4>Dans ton équipe Black Box</h4><div class="agents"></div></div>' +
+    '<div class="term"><div class="t"><span>Démo</span><span>simulation</span></div><div class="out"></div></div>';
+  f.querySelector(".eq").textContent = o.eq;
+  f.querySelector("h3").textContent = o.name + " · " + o.tech;
+  f.querySelector(".one").textContent = o.one;
+  f.querySelector(".cl").textContent = o.claude;
+  f.querySelector(".wh").textContent = o.why;
+  var ag = f.querySelector(".agents");
+  o.agents.forEach(function (a) { var s = document.createElement("span"); s.textContent = a; ag.appendChild(s); });
+  runDemo(f.querySelector(".out"), o.demo);
+}
+function runDemo(out, lines) {
+  clearTimeout(demoTimer);
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function render(n) {
+    out.innerHTML = "";
+    for (var i = 0; i < n; i++) {
+      var p = document.createElement("p");
+      p.className = "ln " + lines[i][0] + (i === n - 1 ? " new cur" : "");
+      p.textContent = lines[i][1];
+      out.appendChild(p);
+    }
+  }
+  if (reduce) { render(lines.length); return; }
+  var n = 1;
+  (function step() {
+    render(n);
+    if (n < lines.length) { n++; demoTimer = setTimeout(step, 900); }
+    else { demoTimer = setTimeout(function () { n = 1; step(); }, 3200); }
+  })();
+}
+
+// ---------- Route ----------
+var LEVELS = [
+  { n: 1, cls: "c-brain", title: "Fondations", sub: "Parler au cerveau. Tu sors de ce niveau avec un CARO qui répond dans ton terminal.", steps: [
+    { id: "s1", t: "Les bases de Python", d: "Variables, fonctions, listes, dictionnaires et boucles. C'est le langage le plus simple pour commencer avec l'API.", p: "Un script qui affiche ton horaire de la semaine à partir d'une liste.", time: "1 à 2 semaines" },
+    { id: "s2", t: "Ton premier appel à l'API Claude", d: "Crée ta clé, installe le SDK avec pip install anthropic et appelle messages.create. Le code est dans la partie 3.", p: "CARO se présente en québécois dans ton terminal.", time: "1 soirée" },
+    { id: "s3", t: "Jetons et fenêtre de contexte", d: "Le modèle lit et écrit en jetons, des morceaux de mots. Tu paies au jeton. Le contexte, c'est tout ce qu'il voit d'un coup.", p: "Compter les jetons de ton lexique avec count_tokens, puis estimer le prix d'une question.", time: "1 soirée" },
+    { id: "s4", t: "Sorties structurées", d: "Forcer la réponse à suivre un schéma JSON (output_config.format) pour que ton code puisse la lire sans deviner.", p: "VOX transforme « réveille-moi à 6 h demain » en { action, heure, date }.", time: "2 soirées" }
+  ]},
+  { n: 2, cls: "c-nerve", title: "Développement", sub: "Donner des nerfs et des mains. Tu sors de ce niveau avec des agents qui agissent dans tes apps.", steps: [
+    { id: "s5", t: "Les outils (tool use)", d: "Tu décris une fonction, Claude demande de l'appeler, ton code l'exécute et renvoie le résultat. Le Tool Runner du SDK fait la boucle.", p: "KAREN reçoit un outil lire_agenda(jour) et répond « t'es-tu libre jeudi? ».", time: "1 semaine" },
+    { id: "s6", t: "Brancher MCP", d: "Au lieu de coder chaque intégration, tu branches un serveur MCP qui existe déjà pour Gmail, Agenda ou tes fichiers.", p: "FRIDAY lit tes 5 derniers courriels et te les résume.", time: "1 semaine" },
+    { id: "s7", t: "Mémoire et RAG", d: "Chercher dans tes notes et documents, puis donner les bons passages au modèle avant qu'il réponde.", p: "CORTEX répond à partir de ton lexique québécois et cite la ligne.", time: "1 à 2 semaines" },
+    { id: "s8", t: "Plusieurs agents, et ton OK", d: "JARVIS répartit le travail vers des sous-agents. Tout geste impossible à défaire attend ta validation (human-in-the-loop). Pour aller plus loin, le Claude Agent SDK donne la boucle de Claude Code avec ses outils intégrés.", p: "JARVIS délègue à KAREN et FRIDAY, puis te demande avant d'envoyer un courriel.", time: "2 semaines" }
+  ]},
+  { n: 3, cls: "c-hand", title: "Production", sub: "Rendre CARO fiable et sûr avant de lui faire confiance tous les jours.", steps: [
+    { id: "s9", t: "Garde-fous contre l'injection", d: "Un courriel ou une page web peut contenir des instructions piégées. CARO doit traiter ce contenu comme des données, jamais comme des ordres.", p: "SENTINEL passe 10 courriels piégés et n'obéit à aucun.", time: "1 semaine" },
+    { id: "s10", t: "Évaluations", d: "Une liste de demandes types avec la bonne réponse attendue, pour savoir si un changement aide ou nuit.", p: "20 phrases en québécois pour tester VOX après chaque modification.", time: "1 semaine" },
+    { id: "s11", t: "Git et GitHub", d: "Sauvegarder chaque version de ton code et revenir en arrière si ça casse. Ton dépôt IntelTrace2 existe déjà.", p: "Pousser le code de CARO sur une branche, sans jamais la clé API.", time: "1 soirée" }
+  ]},
+  { n: 4, cls: "c-glow", title: "Déploiement", sub: "Mettre CARO dans ta poche, pour de vrai.", steps: [
+    { id: "s12", t: "Raccourci « Hey Caro »", d: "Siri écoute, le Raccourci appelle l'API Claude et lit la réponse. Tout est expliqué dans la partie 3.", p: "« Dis Siri, Hey Caro, c'est quoi un jeton? » et CARO répond à voix haute.", time: "1 soirée" },
+    { id: "s13", t: "Un petit serveur", d: "Un serveur Python (FastAPI) reçoit la demande du Raccourci. La clé API reste sur le serveur, plus sur le téléphone, et les agents des niveaux 2 et 3 vivent là.", p: "Le Raccourci appelle ton serveur, et JARVIS répond avec ses outils.", time: "1 à 2 semaines" },
+    { id: "s14", t: "Coûts et vitesse", d: "Chaque réponse indique les jetons utilisés (usage). Le cache de prompt réduit le prix d'un contexte qui se répète, et un effort bas accélère les petites tâches.", p: "Un tableau qui montre combien CARO te coûte par jour.", time: "1 semaine" },
+    { id: "s15", t: "Ton portfolio", d: "Montrer ce que tu as bâti : le code, une démo vidéo, ce que tu as appris.", p: "Brancher la page du QG Black Box sur le vrai CARO au lieu de la simulation.", time: "En continu" }
+  ]}
+];
+var KEY = "academie-caro-v1";
+var done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
+
+var CHECK = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7l3 3 7-7" stroke="#06080d" stroke-width="2.4" fill="none"/></svg>';
+var lv = document.getElementById("levels"), stepEls = {}, total = 0;
+LEVELS.forEach(function (L) {
+  var sec = document.createElement("div");
+  sec.className = L.cls;
+  sec.innerHTML = '<div class="level-h"><span class="num"></span><h3></h3><p></p></div><div class="steps"></div>';
+  sec.querySelector(".num").textContent = "NIV. " + L.n;
+  sec.querySelector("h3").textContent = L.title;
+  sec.querySelector("p").textContent = L.sub;
+  var grid = sec.querySelector(".steps");
+  L.steps.forEach(function (s) {
+    total++;
+    var el = document.createElement("div");
+    el.className = "step";
+    el.innerHTML = '<div class="step-top"><button class="chk" type="button">' + CHECK + '</button><h4></h4></div><p class="d"></p><div class="mini"><b>Mini-projet CARO</b><span></span></div><div class="meta"></div>';
+    el.querySelector("h4").textContent = s.t;
+    el.querySelector(".d").textContent = s.d;
+    el.querySelector(".mini span").textContent = s.p;
+    el.querySelector(".meta").textContent = "⏱ " + s.time;
+    var b = el.querySelector(".chk");
+    b.setAttribute("aria-label", "Marquer « " + s.t + " » comme fait");
+    b.addEventListener("click", function () { done[s.id] = !done[s.id]; save(); paint(); });
+    stepEls[s.id] = { el: el, btn: b, lvl: L.n };
+    grid.appendChild(el);
+  });
+  lv.appendChild(sec);
+});
+function paint() {
+  var n = 0, current = null;
+  LEVELS.forEach(function (L) {
+    L.steps.forEach(function (s) {
+      var on = !!done[s.id];
+      if (on) n++; else if (current === null) current = L;
+      stepEls[s.id].el.classList.toggle("done", on);
+      stepEls[s.id].btn.setAttribute("aria-pressed", String(on));
+    });
+  });
+  document.getElementById("pCount").textContent = n + "/" + total;
+  document.getElementById("pBar").style.width = Math.round(n / total * 100) + "%";
+  document.getElementById("pLabel").textContent = current ? "Niveau " + current.n + " · " + current.title + " en cours" : "Route terminée. CARO est à toi.";
+}
+paint();
+
+// ---------- Copier ----------
+document.querySelectorAll(".copy").forEach(function (b) {
+  b.addEventListener("click", function () {
+    var pre = document.getElementById("code-" + b.getAttribute("data-copy"));
+    var text = pre.textContent.replace(/^\/\/ Corps JSON de la requête\n/, "");
+    function ok() { b.textContent = "Copié"; b.classList.add("ok"); setTimeout(function () { b.textContent = "Copier"; b.classList.remove("ok"); }, 1600); }
+    function fallback() {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      b.textContent = "Texte sélectionné";
+    }
+    try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (e) { fallback(); }
+  });
+});
+
+pick("brain");
+</script>
+
+</body>
+</html>
