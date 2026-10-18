@@ -10,6 +10,7 @@ CARO est ton assistant personnel dans Telegram. Il est propulsé par Claude et n
 | « rappelle-moi demain à 9 h d'appeler Marc » | Il t'écrit dans Telegram à l'heure dite |
 | `/rappels`, `/annule 3` | Il liste ou supprime tes rappels |
 | `/oublie` | Il efface sa mémoire de la conversation |
+| « comment vont mes bots? » ou `/3c` | Il lit tes trades 3Commas ouverts (`/3c bots` pour tes bots). Lecture seulement |
 
 ## 1. Crée ton bot dans Telegram (5 minutes)
 
@@ -60,6 +61,16 @@ Ne lance jamais CARO à deux endroits en même temps avec le même token. Telegr
 2. CARO te répond avec ton identifiant, un nombre comme `123456789`.
 3. Mets ce nombre dans `TELEGRAM_OWNER_ID` (dans le `.env`, ou dans les variables Railway), puis redémarre le bot.
 4. Envoie `/start` de nouveau : CARO est en ligne et ignore tous les autres comptes.
+
+## Brancher 3Commas (optionnel, lecture seule)
+
+1. Dans 3Commas : **Mon profil → Accès API → Nouvelle clé API**, puis choisis une clé générée par le système.
+2. Coche **seulement la permission de lecture** (« Bots read » et « Accounts read », ou « Read only »). Ne coche jamais les permissions de modification (« write ») ou de trading.
+3. Si 3Commas le propose, limite la clé à l'adresse IP de ton serveur.
+4. Copie la clé et le secret dans `THREECOMMAS_API_KEY` et `THREECOMMAS_API_SECRET`, puis redémarre CARO.
+5. Teste avec `/3c` dans Telegram.
+
+CARO peut seulement lire. Il ne peut ni lancer, ni arrêter, ni modifier un bot ou un trade. Sur ta plateforme d'échange, la clé donnée à 3Commas ne doit jamais avoir le droit de retirer des fonds.
 
 ## Réglages
 

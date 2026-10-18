@@ -21,6 +21,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 
 from brain import Brain  # noqa: E402
 from storage import Storage  # noqa: E402
+from threecommas import ThreeCommas, format_bots, format_deals  # noqa: E402
 from tools import fetch_prices, format_price  # noqa: E402
 
 logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s : %(message)s", level=logging.INFO)
@@ -43,6 +44,8 @@ env("ANTHROPIC_API_KEY", required=True)
 OWNER_ID = int(env("TELEGRAM_OWNER_ID", "0") or 0)
 TZ = ZoneInfo(env("CARO_TZ", "America/Toronto"))
 store = Storage(env("CARO_DB", str(HERE / "caro.db")))
+_3c_key, _3c_secret = env("THREECOMMAS_API_KEY"), env("THREECOMMAS_API_SECRET")
+threecommas = ThreeCommas(_3c_key, _3c_secret) if _3c_key and _3c_secret else None
 
 
 # ---------- Accès ----------
@@ -101,6 +104,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/prix btc eth : prix crypto\n"
         "/rappels : tes rappels à venir\n"
         "/annule 3 : supprime le rappel no 3\n"
+        "/3c : tes trades 3Commas ouverts (/3c bots pour tes bots)\n"
         "/oublie : efface ma mémoire de notre conversation"
     )
 
@@ -120,6 +124,24 @@ async def prix(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lines = [format_price(s, p) for s, p in prices.items()]
     lines.append(f"Source : CoinGecko, {datetime.now(TZ):%H:%M}")
     await update.message.reply_text("\n".join(lines))
+
+
+@owner_only
+async def trois_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not threecommas:
+        await update.message.reply_text("3Commas n'est pas branché. Ajoute THREECOMMAS_API_KEY et THREECOMMAS_API_SECRET au .env.")
+        return
+    try:
+        if context.args and context.args[0].lower() == "bots":
+            text = format_bots(await threecommas.bots())
+        else:
+            text = format_deals(await threecommas.active_deals())
+    except PermissionError as e:
+        text = str(e)
+    except Exception as e:
+        log.warning("3Commas : %s", e)
+        text = "3Commas répond pas pour l'instant. Réessaie dans une minute."
+    await send_long(update, text)
 
 
 @owner_only
@@ -196,6 +218,7 @@ def main():
         model=env("CARO_MODEL", "claude-opus-5-5"),
         effort=env("CARO_EFFORT", "low"),
         on_reminder=on_reminder,
+        threecommas=threecommas,
     )
 
     app.add_handler(CommandHandler("start", start))
@@ -203,6 +226,7 @@ def main():
     app.add_handler(CommandHandler("oublie", oublie))
     app.add_handler(CommandHandler("rappels", rappels))
     app.add_handler(CommandHandler("annule", annule))
+    app.add_handler(CommandHandler("3c", trois_c))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 

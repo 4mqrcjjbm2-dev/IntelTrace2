@@ -135,3 +135,55 @@ def test_brain_tool_error_and_refusal(tmp_path):
     assert err["is_error"] is True and "passée" in err["content"]
     assert "fallbacks" not in client.calls[0]
     assert text == "Je peux pas t'aider avec ça."
+
+
+# ---------- 3Commas ----------
+
+import hashlib
+import hmac
+
+from threecommas import ThreeCommas, format_bots, format_deals, sign
+
+
+def test_3c_signature_and_request():
+    seen = {}
+
+    def handler(request):
+        seen["path"] = request.url.raw_path.decode()
+        seen["headers"] = request.headers
+        return httpx.Response(200, json=[{"pair": "USDT_BTC", "bot_name": "DCA BTC", "actual_profit_percentage": "-1.5",
+                                          "actual_usd_profit": "-3.2", "completed_safety_orders_count": 2, "max_safety_orders": 5}])
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as c:
+            return await ThreeCommas("KEY", "SECRET", client=c).active_deals()
+
+    deals = asyncio.run(run())
+    assert seen["path"] == "/public/api/ver1/deals?scope=active&limit=50"
+    assert seen["headers"]["APIKEY"] == "KEY"
+    expected = hmac.new(b"SECRET", seen["path"].encode(), hashlib.sha256).hexdigest()
+    assert seen["headers"]["Signature"] == expected == sign("SECRET", seen["path"])
+    text = format_deals(deals)
+    assert "USDT_BTC (DCA BTC) : -1,50 %, -3,20 $ US · ordres de sécurité 2/5" in text
+    assert "Total non réalisé : -3,20 $ US" in text
+
+
+def test_3c_bad_key_and_bots_format():
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(401))) as c:
+            return await ThreeCommas("K", "S", client=c).bots()
+
+    with pytest.raises(PermissionError):
+        asyncio.run(run())
+    out = format_bots([{"name": "Grid ETH", "is_enabled": True, "pairs": ["USDT_ETH"], "active_deals_count": 1,
+                        "finished_deals_profit_usd": "12.5"}, {"name": "Vieux", "is_enabled": False}])
+    assert out.startswith("1 bot(s) actif(s) sur 2")
+    assert "Grid ETH (actif) · USDT_ETH · trades ouverts : 1 · profit réalisé : +12,50 $ US" in out
+    assert format_deals([]) == "Aucun trade ouvert sur 3Commas."
+
+
+def test_brain_exposes_3c_tool_only_when_configured(tmp_path):
+    store = Storage(tmp_path / "t.db")
+    names = lambda b: [t.get("name") for t in b.tools]
+    assert "trois_commas" not in names(Brain(FakeClient([]), store, TZ))
+    assert "trois_commas" in names(Brain(FakeClient([]), store, TZ, threecommas=object()))
