@@ -1,5 +1,6 @@
 """Stockage SQLite de CARO : la mémoire de conversation et les rappels."""
 
+import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,6 +26,15 @@ class Storage:
                 due_utc TEXT NOT NULL,
                 message TEXT NOT NULL,
                 sent INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS kv (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                text TEXT NOT NULL,
+                posted_at TEXT NOT NULL
             );
             """
         )
@@ -84,6 +94,31 @@ class Storage:
     def mark_sent(self, reminder_id):
         self.db.execute("UPDATE reminders SET sent = 1 WHERE id = ?", (reminder_id,))
         self.db.commit()
+
+    # ---------- Valeurs simples (état de l'interrupteur, bots arrêtés) ----------
+
+    def get(self, key, default=None):
+        row = self.db.execute("SELECT value FROM kv WHERE key = ?", (key,)).fetchone()
+        return json.loads(row["value"]) if row else default
+
+    def set(self, key, value):
+        self.db.execute(
+            "INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (key, json.dumps(value)),
+        )
+        self.db.commit()
+
+    # ---------- Publications ----------
+
+    def add_post(self, text):
+        self.db.execute(
+            "INSERT INTO posts (text, posted_at) VALUES (?, ?)", (text, datetime.now(timezone.utc).isoformat())
+        )
+        self.db.commit()
+
+    def recent_posts(self, limit=7):
+        rows = self.db.execute("SELECT text FROM posts ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        return [r["text"] for r in rows]
 
     def delete_reminder(self, chat_id, reminder_id):
         cur = self.db.execute(

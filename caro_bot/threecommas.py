@@ -23,13 +23,13 @@ class ThreeCommas:
         self.api_secret = api_secret
         self.client = client
 
-    async def _get(self, path, params=None):
+    async def _request(self, method, path, params=None):
         uri = PREFIX + path + ("?" + urlencode(params) if params else "")
         headers = {"APIKEY": self.api_key, "Signature": sign(self.api_secret, uri)}
         own = self.client is None
         client = self.client or httpx.AsyncClient(timeout=15)
         try:
-            r = await client.get(BASE + uri, headers=headers)
+            r = await client.request(method, BASE + uri, headers=headers)
         finally:
             if own:
                 await client.aclose()
@@ -38,11 +38,21 @@ class ThreeCommas:
         r.raise_for_status()
         return r.json()
 
+    async def _get(self, path, params=None):
+        return await self._request("GET", path, params)
+
     async def active_deals(self):
         return await self._get("/ver1/deals", {"scope": "active", "limit": 50})
 
     async def bots(self):
         return await self._get("/ver1/bots", {"limit": 50})
+
+    # Écriture : utilisé seulement par l'interrupteur d'urgence (clé avec permission « Bots write »).
+    async def disable_bot(self, bot_id):
+        return await self._request("POST", f"/ver1/bots/{int(bot_id)}/disable")
+
+    async def enable_bot(self, bot_id):
+        return await self._request("POST", f"/ver1/bots/{int(bot_id)}/enable")
 
 
 def _num(value):

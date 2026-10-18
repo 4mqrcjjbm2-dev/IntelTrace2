@@ -10,6 +10,10 @@ CARO est ton assistant personnel dans Telegram. Il est propulsé par Claude et n
 | « rappelle-moi demain à 9 h d'appeler Marc » | Il t'écrit dans Telegram à l'heure dite |
 | `/rappels`, `/annule 3` | Il liste ou supprime tes rappels |
 | `/oublie` | Il efface sa mémoire de la conversation |
+| `/stop` ou « arrête mes bots » | **Interrupteur d'urgence** : il arrête pour vrai tes bots 3Commas et Freqtrade, après ton clic de confirmation |
+| `/reprendre` | Il redémarre seulement les bots que `/stop` a arrêtés |
+| `/post` | ECHO prépare la publication du jour pour ta chaîne |
+| `/etat` | L'état de l'interrupteur et de la publication quotidienne |
 | « comment vont mes bots? » ou `/3c` | Il lit tes trades 3Commas ouverts (`/3c bots` pour tes bots). Lecture seulement |
 
 ## 1. Crée ton bot dans Telegram (5 minutes)
@@ -87,6 +91,32 @@ Pour l'activer :
 4. Redémarre CARO. Le journal affiche « Secours Ollama : oui ».
 
 Si une clé Ollama se retrouve dans un message, une capture ou sur GitHub, supprime-la sur ollama.com et crées-en une nouvelle.
+
+## Interrupteur d'urgence (optionnel, mais c'est lui qui éteint les bots pour vrai)
+
+`/stop` (ou « arrête mes bots ») t'envoie un bouton **Oui, tout arrêter**. Rien ne bouge avant ton clic. Ensuite :
+
+- **3Commas** : chaque bot actif est désactivé, il n'ouvre plus de nouveaux trades. **Les trades déjà ouverts restent ouverts** : ferme-les dans 3Commas si tu le veux.
+- **Freqtrade** : le bot arrête de trader (`/api/v1/stop`).
+
+`/reprendre` redémarre seulement les bots que l'interrupteur a arrêtés. Seul ton compte Telegram peut appuyer sur les boutons.
+
+Pour le brancher :
+1. **3Commas** : crée une **deuxième** clé API, séparée de celle en lecture, avec seulement « Bots read » et « Bots write ». Pas de trading manuel, pas d'accès aux comptes. Mets-la dans `THREECOMMAS_KILL_API_KEY` et `THREECOMMAS_KILL_API_SECRET`.
+2. **Freqtrade** : active son API REST, puis mets `FREQTRADE_URL`, `FREQTRADE_USER` et `FREQTRADE_PASSWORD`.
+3. Redémarre CARO. Le journal affiche « Interrupteur : branché ».
+
+## Publication quotidienne d'ECHO (optionnel)
+
+Chaque jour à `PROMO_TIME`, ECHO écrit une publication sur ton projet et te l'envoie en privé avec 3 boutons : **Publier**, **Refaire**, **Annuler**. Rien ne part sur ta chaîne sans ton clic.
+
+1. Crée une chaîne Telegram publique pour le projet.
+2. Ajoute ton bot CARO comme **administrateur** de la chaîne, avec le droit de publier.
+3. Copie `promo_brief.example.md` en `promo_brief.md` et remplis la fiche. Sur Railway, colle plutôt tout le texte dans la variable `PROMO_BRIEF`. ECHO n'utilise que les faits de cette fiche.
+4. Mets `PROMO_CHANNEL=@nom_de_ta_chaine` (et `PROMO_TIME`, par défaut `09:00`), puis redémarre CARO.
+5. Teste tout de suite avec `/post`.
+
+ECHO a des règles fixes : aucune promesse de prix ou de rendement, pas de fausse urgence, pas de chiffres inventés, et chaque publication finit par « Pas un conseil financier. Les cryptos peuvent perdre toute leur valeur. »
 
 ## Réglages
 

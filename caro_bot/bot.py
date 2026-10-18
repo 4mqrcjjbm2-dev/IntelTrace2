@@ -16,12 +16,14 @@ sys.path.insert(0, str(HERE))
 import anthropic  # noqa: E402
 import httpx  # noqa: E402
 from dotenv import load_dotenv  # noqa: E402
-from telegram import Update  # noqa: E402
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update  # noqa: E402
 from telegram.constants import ChatAction  # noqa: E402
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters  # noqa: E402
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters  # noqa: E402
 
 from backup import OllamaBackup, reply_with_backup  # noqa: E402
 from brain import Brain  # noqa: E402
+from killswitch import Freqtrade, KillSwitch  # noqa: E402
+from promo import draft_post, parse_hhmm  # noqa: E402
 from storage import Storage  # noqa: E402
 from threecommas import ThreeCommas, format_bots, format_deals  # noqa: E402
 from tools import fetch_prices, format_price  # noqa: E402
@@ -50,6 +52,20 @@ _3c_key, _3c_secret = env("THREECOMMAS_API_KEY"), env("THREECOMMAS_API_SECRET")
 threecommas = ThreeCommas(_3c_key, _3c_secret) if _3c_key and _3c_secret else None
 _ollama_key = env("OLLAMA_API_KEY")
 backup = OllamaBackup(_ollama_key, env("OLLAMA_MODEL", "gpt-oss:120b")) if _ollama_key else None
+
+# Interrupteur d'urgence : une clé 3Commas SÉPARÉE, avec la permission d'écriture sur les bots, et/ou Freqtrade.
+_k_key, _k_secret = env("THREECOMMAS_KILL_API_KEY"), env("THREECOMMAS_KILL_API_SECRET")
+_ft_url = env("FREQTRADE_URL")
+killswitch = KillSwitch(
+    store,
+    threecommas=ThreeCommas(_k_key, _k_secret) if _k_key and _k_secret else None,
+    freqtrade=Freqtrade(_ft_url, env("FREQTRADE_USER", ""), env("FREQTRADE_PASSWORD", "")) if _ft_url else None,
+)
+
+# Publication quotidienne d'ECHO sur la chaîne Telegram du projet
+PROMO_CHANNEL = env("PROMO_CHANNEL")  # ex. @macrypto_charlevoix ou -100123456789
+PROMO_BRIEF_FILE = env("PROMO_BRIEF_FILE", str(HERE / "promo_brief.md"))
+PROMO_TIME = env("PROMO_TIME", "09:00")
 
 
 # ---------- Accès ----------
@@ -109,6 +125,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/rappels : tes rappels à venir\n"
         "/annule 3 : supprime le rappel no 3\n"
         "/3c : tes trades 3Commas ouverts (/3c bots pour tes bots)\n"
+        "/stop : interrupteur d'urgence, arrête tous les bots\n"
+        "/reprendre : redémarre les bots arrêtés par /stop\n"
+        "/etat : état de l'interrupteur et de la publication du jour\n"
+        "/post : ECHO prépare la publication du jour maintenant\n"
         "/oublie : efface ma mémoire de notre conversation"
     )
 
@@ -199,13 +219,129 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_long(update, text)
 
 
+# ---------- Interrupteur d'urgence ----------
+
+def confirm_kb(action):
+    if action == "reprendre":
+        return InlineKeyboardMarkup([[InlineKeyboardButton("Oui, redémarrer", callback_data="kill:resume"), InlineKeyboardButton("Annuler", callback_data="kill:cancel")]])
+    return InlineKeyboardMarkup([[InlineKeyboardButton("Oui, tout arrêter", callback_data="kill:stop"), InlineKeyboardButton("Annuler", callback_data="kill:cancel")]])
+
+
+async def ask_kill(bot, chat_id, action):
+    if not killswitch.configured:
+        await bot.send_message(chat_id, "L'interrupteur n'est pas branché : ajoute THREECOMMAS_KILL_API_KEY/SECRET ou FREQTRADE_URL (voir le README).")
+        return
+    text = ("Confirmer le REDÉMARRAGE des bots arrêtés par l'interrupteur?" if action == "reprendre"
+            else "Confirmer l'ARRÊT de tous tes bots? 3Commas n'ouvrira plus de trades et Freqtrade s'arrête. Les trades déjà ouverts restent ouverts.")
+    await bot.send_message(chat_id, text, reply_markup=confirm_kb(action))
+
+
+@owner_only
+async def stop_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await ask_kill(context.bot, update.effective_chat.id, "arreter")
+
+
+@owner_only
+async def resume_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await ask_kill(context.bot, update.effective_chat.id, "reprendre")
+
+
+@owner_only
+async def etat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lines = [
+        "Interrupteur : " + ("ACTIVÉ, bots arrêtés" if killswitch.active else "désactivé") + ("" if killswitch.configured else " (pas branché)"),
+        "Publication du jour : " + (f"chaque jour à {PROMO_TIME} vers {PROMO_CHANNEL}" if PROMO_CHANNEL else "pas configurée (PROMO_CHANNEL)"),
+    ]
+    await update.message.reply_text("\n".join(lines))
+
+
+# ---------- Publication quotidienne (ECHO) ----------
+
+def promo_kb():
+    return InlineKeyboardMarkup([[InlineKeyboardButton("Publier", callback_data="promo:ok"), InlineKeyboardButton("Refaire", callback_data="promo:redo"), InlineKeyboardButton("Annuler", callback_data="promo:no")]])
+
+
+async def make_draft(app, chat_id):
+    brief = (env("PROMO_BRIEF") or "").strip()
+    if not brief:
+        try:
+            brief = Path(PROMO_BRIEF_FILE).read_text(encoding="utf-8").strip()
+        except OSError:
+            await app.bot.send_message(chat_id, f"Je trouve pas la fiche du projet ({PROMO_BRIEF_FILE}). Copie promo_brief.example.md en promo_brief.md et remplis-la.")
+            return
+    brain: Brain = app.bot_data["brain"]
+    try:
+        text = await draft_post(brain.client, brain.model, brief, store.recent_posts(), datetime.now(TZ).strftime("%Y-%m-%d"))
+    except Exception as e:
+        log.error("Brouillon ECHO : %s", e)
+        await app.bot.send_message(chat_id, f"ECHO n'a pas pu écrire la publication ({e}).")
+        return
+    app.bot_data["promo_draft"] = text
+    await app.bot.send_message(chat_id, "Brouillon d'ECHO pour " + str(PROMO_CHANNEL) + " :\n\n" + text, reply_markup=promo_kb())
+
+
+async def promo_job(context: ContextTypes.DEFAULT_TYPE):
+    if OWNER_ID and PROMO_CHANNEL:
+        await make_draft(context.application, OWNER_ID)
+
+
+@owner_only
+async def post_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not PROMO_CHANNEL:
+        await update.message.reply_text("Ajoute PROMO_CHANNEL au .env (ex. @tachaine) et fais de CARO un admin de la chaîne.")
+        return
+    await context.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
+    await make_draft(context.application, update.effective_chat.id)
+
+
+# ---------- Boutons ----------
+
+async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    if not q or not q.from_user or q.from_user.id != OWNER_ID:
+        if q:
+            await q.answer()
+        return
+    await q.answer()
+    data = q.data or ""
+    if data == "kill:stop":
+        await q.edit_message_text("Arrêt en cours…")
+        await q.edit_message_text("Interrupteur d'urgence ACTIVÉ.\n" + "\n".join(await killswitch.stop()))
+    elif data == "kill:resume":
+        await q.edit_message_text("Redémarrage en cours…")
+        await q.edit_message_text("Interrupteur désactivé.\n" + "\n".join(await killswitch.resume()))
+    elif data == "kill:cancel":
+        await q.edit_message_text("Annulé. Rien n'a changé.")
+    elif data == "promo:ok":
+        text = context.application.bot_data.pop("promo_draft", None)
+        if not text:
+            await q.edit_message_text("Ce brouillon n'est plus disponible. Tape /post pour en refaire un.")
+            return
+        try:
+            await context.bot.send_message(PROMO_CHANNEL, text)
+            store.add_post(text)
+            await q.edit_message_text("Publié sur " + str(PROMO_CHANNEL) + " :\n\n" + text)
+        except Exception as e:
+            context.application.bot_data["promo_draft"] = text
+            await q.edit_message_text(f"Publication impossible ({e}). CARO est-il admin de la chaîne?\n\n" + text, reply_markup=promo_kb())
+    elif data == "promo:redo":
+        await q.edit_message_text("ECHO réécrit…")
+        await make_draft(context.application, q.message.chat_id)
+    elif data == "promo:no":
+        context.application.bot_data.pop("promo_draft", None)
+        await q.edit_message_text("Publication annulée pour aujourd'hui.")
+
+
 # ---------- Démarrage ----------
 
 async def post_init(app: Application):
     pending = store.pending_reminders()
     for r in pending:
         schedule(app, r)
-    log.info("CARO prêt. %d rappel(s) rechargé(s). Secours Ollama : %s.", len(pending), "oui" if backup else "non")
+    if PROMO_CHANNEL:
+        app.job_queue.run_daily(promo_job, time=parse_hhmm(PROMO_TIME, TZ), name="promo")
+    log.info("CARO prêt. %d rappel(s) rechargé(s). Secours Ollama : %s. Interrupteur : %s. Publication : %s.", len(pending),
+             "oui" if backup else "non", "branché" if killswitch.configured else "non", PROMO_TIME if PROMO_CHANNEL else "non")
     if not OWNER_ID:
         log.warning("TELEGRAM_OWNER_ID est vide : envoie /start au bot pour connaître ton identifiant.")
 
@@ -226,6 +362,7 @@ def main():
         effort=env("CARO_EFFORT", "low"),
         on_reminder=on_reminder,
         threecommas=threecommas,
+        on_kill_request=(lambda chat_id, action: ask_kill(app.bot, chat_id, action)) if killswitch.configured else None,
     )
 
     app.add_handler(CommandHandler("start", start))
@@ -234,6 +371,11 @@ def main():
     app.add_handler(CommandHandler("rappels", rappels))
     app.add_handler(CommandHandler("annule", annule))
     app.add_handler(CommandHandler("3c", trois_c))
+    app.add_handler(CommandHandler("stop", stop_cmd))
+    app.add_handler(CommandHandler("reprendre", resume_cmd))
+    app.add_handler(CommandHandler("etat", etat))
+    app.add_handler(CommandHandler("post", post_cmd))
+    app.add_handler(CallbackQueryHandler(on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 

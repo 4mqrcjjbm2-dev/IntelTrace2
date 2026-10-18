@@ -268,3 +268,105 @@ def test_reply_with_backup_keeps_auth_error_and_no_backup(tmp_path):
         asyncio.run(reply_with_backup(_FailingBrain(store, _status_err(_anthropic.AuthenticationError, 401)), _FakeBackup(), 1, "x"))
     with pytest.raises(_anthropic.RateLimitError):
         asyncio.run(reply_with_backup(_FailingBrain(store, _status_err(_anthropic.RateLimitError, 429)), None, 1, "x"))
+
+
+# ---------- Interrupteur d'urgence ----------
+
+from killswitch import Freqtrade, KillSwitch
+from promo import draft_post, parse_hhmm
+
+
+def test_killswitch_stops_and_resumes(tmp_path):
+    store = Storage(tmp_path / "t.db")
+    calls = []
+
+    def handler(request):
+        calls.append((request.method, request.url.path))
+        if request.url.path.endswith("/ver1/bots"):
+            return httpx.Response(200, json=[{"id": 7, "name": "DCA BTC", "is_enabled": True}, {"id": 8, "name": "Vieux", "is_enabled": False}])
+        return httpx.Response(200, json={})
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as c:
+            ks = KillSwitch(store, threecommas=ThreeCommas("K", "S", client=c), freqtrade=Freqtrade("http://ft:8080/", "u", "p", client=c))
+            out1 = await ks.stop()
+            assert ks.active and store.get("kill_3c_ids") == [7]
+            out2 = await ks.resume()
+            return out1, out2, ks.active
+
+    out1, out2, active = asyncio.run(run())
+    assert ("POST", "/public/api/ver1/bots/7/disable") in calls
+    assert ("POST", "/public/api/ver1/bots/8/disable") not in calls
+    assert ("POST", "/api/v1/stop") in calls and ("POST", "/api/v1/start") in calls
+    assert ("POST", "/public/api/ver1/bots/7/enable") in calls
+    assert "3Commas : DCA BTC désactivé" in out1 and "Freqtrade : arrêté" in out1
+    assert not active and store.get("kill_3c_ids") == []
+
+
+def test_killswitch_reports_failures(tmp_path):
+    store = Storage(tmp_path / "t.db")
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(500))) as c:
+            return await KillSwitch(store, freqtrade=Freqtrade("http://ft", "u", "p", client=c)).stop()
+
+    out = asyncio.run(run())
+    assert out[0].startswith("Freqtrade : ÉCHEC")
+    assert KillSwitch(store).configured is False
+
+
+def test_brain_kill_tool_only_asks_confirmation(tmp_path):
+    store = Storage(tmp_path / "t.db")
+    asked = []
+
+    async def on_kill(chat_id, action):
+        asked.append((chat_id, action))
+
+    client = FakeClient([
+        resp("tool_use", SimpleNamespace(type="tool_use", id="k1", name="arret_urgence", input={"action": "arreter"})),
+        resp("end_turn", SimpleNamespace(type="text", text="Confirme avec le bouton.")),
+    ])
+    brain = Brain(client, store, TZ, on_kill_request=on_kill)
+    assert "arret_urgence" in [t.get("name") for t in brain.tools]
+    assert asyncio.run(brain.reply(3, "arrête tout")) == "Confirme avec le bouton."
+    assert asked == [(3, "arreter")]
+    assert "Rien n'est arrêté" in client.calls[1]["messages"][-1]["content"][0]["content"]
+
+
+# ---------- Publication quotidienne ----------
+
+class _Msgs:
+    def __init__(self, r):
+        self.r, self.kw = r, None
+
+    async def create(self, **kw):
+        self.kw = kw
+        return self.r
+
+
+def test_draft_post_uses_brief_and_history():
+    msgs = _Msgs(SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=" Salut Charlevoix! ")]))
+    client = SimpleNamespace(messages=msgs)
+    text = asyncio.run(draft_post(client, "claude-opus-5-5", "Nom : TEST", ["hier"], "2026-10-18"))
+    assert text == "Salut Charlevoix!"
+    prompt = msgs.kw["messages"][0]["content"]
+    assert "Nom : TEST" in prompt and "hier" in prompt
+    assert "Aucune promesse de prix" in msgs.kw["system"]
+
+
+def test_draft_post_refusal_and_time_parsing():
+    client = SimpleNamespace(messages=_Msgs(SimpleNamespace(stop_reason="refusal", content=[])))
+    with pytest.raises(RuntimeError):
+        asyncio.run(draft_post(client, "m", "b", [], "d"))
+    assert parse_hhmm("07:45", TZ).hour == 7
+    with pytest.raises(ValueError):
+        parse_hhmm("25:00", TZ)
+
+
+def test_storage_kv_and_posts(tmp_path):
+    s = Storage(tmp_path / "t.db")
+    assert s.get("x", 5) == 5
+    s.set("x", [1, 2]); s.set("x", [3])
+    assert s.get("x") == [3]
+    s.add_post("a"); s.add_post("b")
+    assert s.recent_posts() == ["b", "a"]

@@ -39,3 +39,6 @@ Thumbs.db
 # Temporary
 *.tmp
 *.bak
+
+# Fiche promo personnelle de CARO
+caro_bot/promo_brief.md
