@@ -187,3 +187,84 @@ def test_brain_exposes_3c_tool_only_when_configured(tmp_path):
     names = lambda b: [t.get("name") for t in b.tools]
     assert "trois_commas" not in names(Brain(FakeClient([]), store, TZ))
     assert "trois_commas" in names(Brain(FakeClient([]), store, TZ, threecommas=object()))
+
+
+# ---------- Secours Ollama ----------
+
+import anthropic as _anthropic
+
+from backup import PREFIX, OllamaBackup, claude_unavailable, reply_with_backup
+
+
+def _status_err(cls, code, msg="erreur"):
+    import httpx2
+    return cls(msg, response=httpx2.Response(code, request=httpx2.Request("POST", "https://api.anthropic.com/v1/messages")), body=None)
+
+
+def test_ollama_request_shape():
+    seen = {}
+
+    def handler(request):
+        import json as _json
+        seen["auth"] = request.headers["Authorization"]
+        seen["body"] = _json.loads(request.content)
+        return httpx.Response(200, json={"message": {"role": "assistant", "content": " Salut! "}})
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as c:
+            return await OllamaBackup("KEY", "gpt-oss:120b", client=c).chat([{"role": "user", "content": "a"}, {"role": "assistant", "content": "b"}], "allo")
+
+    assert asyncio.run(run()) == "Salut!"
+    assert seen["auth"] == "Bearer KEY"
+    body = seen["body"]
+    assert body["model"] == "gpt-oss:120b" and body["stream"] is False
+    assert body["messages"][0]["role"] == "system" and "Mode secours" in body["messages"][0]["content"]
+    assert [m["content"] for m in body["messages"][1:]] == ["a", "b", "allo"]
+
+
+def test_claude_unavailable_rules():
+    import httpx2
+    assert claude_unavailable(_anthropic.APIConnectionError(request=httpx2.Request("POST", "https://x")))
+    assert claude_unavailable(_status_err(_anthropic.RateLimitError, 429))
+    assert claude_unavailable(_status_err(_anthropic.InternalServerError, 529))
+    assert claude_unavailable(_status_err(_anthropic.BadRequestError, 400, "Your credit balance is too low"))
+    assert not claude_unavailable(_status_err(_anthropic.BadRequestError, 400, "bad schema"))
+    assert not claude_unavailable(_status_err(_anthropic.AuthenticationError, 401))
+
+
+class _FailingBrain:
+    def __init__(self, store, err):
+        self.store, self.err = store, err
+
+    async def reply(self, chat_id, text):
+        raise self.err
+
+
+class _FakeBackup:
+    def __init__(self):
+        self.calls = []
+
+    async def chat(self, history, text):
+        self.calls.append((history, text))
+        return "Je suis là."
+
+
+def test_reply_with_backup_falls_back(tmp_path):
+    import httpx2
+    store = Storage(tmp_path / "t.db")
+    store.add_turn(1, "user", "avant")
+    store.add_turn(1, "assistant", "ok")
+    brain = _FailingBrain(store, _anthropic.APIConnectionError(request=httpx2.Request("POST", "https://x")))
+    bk = _FakeBackup()
+    text = asyncio.run(reply_with_backup(brain, bk, 1, "allo"))
+    assert text == PREFIX + "Je suis là."
+    assert bk.calls[0][0][0]["content"] == "avant"
+    assert store.recent_history(1)[-1]["content"] == text
+
+
+def test_reply_with_backup_keeps_auth_error_and_no_backup(tmp_path):
+    store = Storage(tmp_path / "t.db")
+    with pytest.raises(_anthropic.AuthenticationError):
+        asyncio.run(reply_with_backup(_FailingBrain(store, _status_err(_anthropic.AuthenticationError, 401)), _FakeBackup(), 1, "x"))
+    with pytest.raises(_anthropic.RateLimitError):
+        asyncio.run(reply_with_backup(_FailingBrain(store, _status_err(_anthropic.RateLimitError, 429)), None, 1, "x"))

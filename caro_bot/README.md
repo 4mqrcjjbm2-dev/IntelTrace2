@@ -72,6 +72,22 @@ Ne lance jamais CARO à deux endroits en même temps avec le même token. Telegr
 
 CARO peut seulement lire. Il ne peut ni lancer, ni arrêter, ni modifier un bot ou un trade. Sur ta plateforme d'échange, la clé donnée à 3Commas ne doit jamais avoir le droit de retirer des fonds.
 
+## Cerveau de secours : Ollama (optionnel)
+
+Si Claude ne répond pas (panne, trop de demandes, crédit épuisé), CARO peut répondre avec un modèle ouvert sur Ollama Cloud au lieu de se taire. Ses réponses commencent alors par « (mode secours) ».
+
+- **Ce qu'il fait :** jaser, avec la même personnalité et la même mémoire.
+- **Ce qu'il ne fait pas :** il n'a aucun outil. Pas de prix en direct, pas de rappels, pas de 3Commas, pas de recherche web.
+- **Une clé Claude refusée n'active pas le secours :** CARO te montre l'erreur pour que tu la corriges.
+
+Pour l'activer :
+1. Sur [ollama.com](https://ollama.com), crée une clé API dans les réglages de ton compte.
+2. Mets-la dans `OLLAMA_API_KEY` (dans le `.env` ou dans les variables Railway).
+3. Au besoin, change `OLLAMA_MODEL` pour un modèle cloud de la liste d'Ollama (par défaut `gpt-oss:120b`).
+4. Redémarre CARO. Le journal affiche « Secours Ollama : oui ».
+
+Si une clé Ollama se retrouve dans un message, une capture ou sur GitHub, supprime-la sur ollama.com et crées-en une nouvelle.
+
 ## Réglages
 
 | Variable | Défaut | À quoi ça sert |

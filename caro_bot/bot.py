@@ -14,11 +14,13 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import anthropic  # noqa: E402
+import httpx  # noqa: E402
 from dotenv import load_dotenv  # noqa: E402
 from telegram import Update  # noqa: E402
 from telegram.constants import ChatAction  # noqa: E402
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters  # noqa: E402
 
+from backup import OllamaBackup, reply_with_backup  # noqa: E402
 from brain import Brain  # noqa: E402
 from storage import Storage  # noqa: E402
 from threecommas import ThreeCommas, format_bots, format_deals  # noqa: E402
@@ -46,6 +48,8 @@ TZ = ZoneInfo(env("CARO_TZ", "America/Toronto"))
 store = Storage(env("CARO_DB", str(HERE / "caro.db")))
 _3c_key, _3c_secret = env("THREECOMMAS_API_KEY"), env("THREECOMMAS_API_SECRET")
 threecommas = ThreeCommas(_3c_key, _3c_secret) if _3c_key and _3c_secret else None
+_ollama_key = env("OLLAMA_API_KEY")
+backup = OllamaBackup(_ollama_key, env("OLLAMA_MODEL", "gpt-oss:120b")) if _ollama_key else None
 
 
 # ---------- Accès ----------
@@ -179,7 +183,10 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     brain: Brain = context.application.bot_data["brain"]
     await context.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
     try:
-        text = await brain.reply(update.effective_chat.id, update.message.text)
+        text = await reply_with_backup(brain, backup, update.effective_chat.id, update.message.text)
+    except httpx.HTTPError as e:
+        log.error("Secours Ollama en erreur : %s", e)
+        text = "Claude et mon cerveau de secours sont indisponibles. Réessaie dans quelques minutes."
     except anthropic.AuthenticationError:
         text = "Ma clé API Anthropic est refusée. Vérifie ANTHROPIC_API_KEY dans le .env."
     except anthropic.RateLimitError:
@@ -198,7 +205,7 @@ async def post_init(app: Application):
     pending = store.pending_reminders()
     for r in pending:
         schedule(app, r)
-    log.info("CARO prêt. %d rappel(s) rechargé(s).", len(pending))
+    log.info("CARO prêt. %d rappel(s) rechargé(s). Secours Ollama : %s.", len(pending), "oui" if backup else "non")
     if not OWNER_ID:
         log.warning("TELEGRAM_OWNER_ID est vide : envoie /start au bot pour connaître ton identifiant.")
 
